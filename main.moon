@@ -44,8 +44,9 @@ class Printer extends Sequence
       p text, x, y + i * @line_height
 
 class Player extends Entity
-  w: 10, h: 12
-  ox: 0, oy: 0
+  watch_class self
+  w: 8, h: 4
+  ox: 1, oy: 8
 
   alive: true
 
@@ -58,7 +59,7 @@ class Player extends Entity
 
   new: (...) =>
     super ...
-    @sprite = Spriter imgfy"img/sprite.png", 10, 12, 3
+    @sprite = Spriter imgfy"img/sprite.png", 10, 13, 3
 
     with @sprite
       @anim = StateAnim "stand_down", {
@@ -73,7 +74,6 @@ class Player extends Entity
 
         walk_right:   \seq {9, 10}, 0.25
         walk_left:    \seq {9, 10}, 0.25, true
-
       }
 
   draw: =>
@@ -94,48 +94,49 @@ class Player extends Entity
     true -- still alive
 
 class World
-  collides: => false
-
-hello = Printer "hello\nworld!\n\nI think you\nwill & this\ngame!"
-
-class Game
   new: =>
-    @viewport = Viewport scale: 3
-
-    @entities = DrawList!
-
-    @world = World!
-    @player = Player @world, 56, 23
-
-    with @entities
-      \add @player
-
     @map = Autotile "img/map.png", {
       [1]: TileSetSpriter "img/tiles.png", 16, 16
       [2]: TileSetSpriter "img/tiles.png", 16, 16, 48
       [3]: BorderTileSpriter "img/tiles.png", 16, 16, 48*2
     }
 
+    @entities = DrawList!
+
+  collides: (thing) => @map\collides thing
+
+  draw: =>
+    @map\draw!
+    @entities\draw!
+
+  update: (dt) =>
+    @entities\update dt
+
+hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
+
+class Game
+  new: =>
+    @viewport = Viewport scale: 3
+
+    @world = World!
+    @player = Player @world, 42, 64
+    @world.entities\add @player
+
   draw: =>
     @viewport\apply!
 
-    @map\draw!
-    -- @chip\draw_cell false, true, true, true, false, true, true, true, 10, 10
-    -- @chip\draw_cell 10, 10, false, true, true, true, true, true, false, true
-
-    @entities\draw!
+    @world\draw!
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
-
     -- hello\draw 10, 10
+
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
     reloader\update dt
+    @player.velocity = movement_vector 40
+    @world\update dt
 
-    @player.velocity = movement_vector 30
-    @entities\update dt
     hello\update dt
-
     snapper\tick dt if snapper
 
   on_key: (key, code) =>

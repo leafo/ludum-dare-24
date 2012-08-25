@@ -163,11 +163,6 @@ class Autotile
           other_tile = tiles[k]
           tileset\is_connected tile, other_tile
 
-          -- if other_tile and other_tile.tid == tile.tid
-          --   true
-          -- else
-          --   false
-
         corners = tileset\calc_corners unpack touching
         changes[i] = QuadTile tileset, corners, tile\unpack!
 
@@ -196,15 +191,31 @@ class Autotile
 
     tiles[i] = t for i, t in pairs to_add
 
+  make_solid: (from_layer=1)=>
+    solid_layer = {}
+    is_solid = Set { @types.wall, @types.border }
+
+    for i, tile in pairs @map.layers[from_layer]
+      if tile and is_solid[tile.tid]
+        solid_layer[i] = Box @map\pos_for_i i
+
+    @map.layers[@map.solid_layer] = solid_layer
+
   new: (fname, @tilesets={}) =>
     sprite = FakeSpriter 16, 16
     @map = TileMap.from_image fname, sprite, {
       ["59,57,77"]: { tid: @types.floor }
     }
-    
+
     @add_walls!
     @add_surrounding!
+    @make_solid!
+
     @autotile!
 
   draw: =>
     @map\draw!
+
+  collides: (thing) =>
+    @map\collides thing
+
