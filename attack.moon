@@ -6,11 +6,13 @@ export ^
 
 -- a factor for attacks
 class Spear
+  watch_class self
+
   offsets: {
-    left:   {0,0}
-    right:  {0,0}
-    up:     {0,0}
-    down:   {0,0}
+    left:   {-5, -3}
+    right:  {2, -3}
+    up:     {0, -10}
+    down:   {3, 0}
   }
 
   new: =>
@@ -21,9 +23,8 @@ class Spear
         up:     \seq {"43,13,5,11"}
 
         right:  \seq {"40,5,11,5"}
-        down:   \seq {"43,13,5,11"}, 0, true
+        down:   \seq {"43,13,5,11"}, 0, true, true
       }
-    print "made spear"
 
   attack: (player) =>
     Attack player, self, @states
@@ -42,7 +43,7 @@ class Attack
     ox, oy = unpack weapon.offsets[@direction]
     @box = Box @player.box.x + ox, @player.box.y + oy, @w, @h
 
-    speed = 10
+    speed = 20
     @velocity = Vec2d switch @direction
       when "left"
         -speed, 0
@@ -53,14 +54,12 @@ class Attack
       when "down"
         0, speed
 
-    print @velocity
-
   draw: =>
     @animation\draw @box.x, @box.y
     -- @box\outline!
 
   update: (dt) =>
-    -- @box\move @velocity * dt
+    @box\move unpack @velocity * dt
     @animation\update dt
     @life -= dt
     @life >= 0
