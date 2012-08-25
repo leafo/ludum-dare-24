@@ -1,5 +1,7 @@
 
 require "lovekit.all"
+reloader = require "lovekit.reloader"
+
 g = love.graphics
 import timer, keyboard, audio from love
 
@@ -47,23 +49,38 @@ class Player extends Entity
 
   __tostring: => concat { "<Player: ", tostring(@box), ">" }
 
+  state_names: {
+    walk: {"walk_up", "walk_up", "walk_down", "walk_down"}
+    stand: {"stand_up", "stand_up", "stand_down", "stand_down"}
+  }
+
   new: (...) =>
     super ...
-    @sprite = Spriter imgfy"img/sprite.png", 10, 12
-    @cell_id = 0
+    @sprite = Spriter imgfy"img/sprite.png", 10, 12, 3
 
-    @seq = Sequence ->
-      @cell_id = 0
-      wait 0.5
-      @cell_id = 1
-      wait 0.5
-      again!
+    @anim = StateAnim "stand_down", {
+      stand_down: @sprite\seq {5}
+      stand_up:   @sprite\seq {8}
+
+      walk_down:  @sprite\seq {3, 4}, 0.25
+      walk_up:    @sprite\seq {6, 7}, 0.25
+    }
 
   draw: =>
-    @sprite\draw_cell @cell_id, @box.x - @ox, @box.y - @oy
+    @anim\draw @box.x - @ox, @box.y - @oy
 
   update: (...) =>
-    @seq\update ...
+    base = if @velocity\is_zero! then
+      "stand"
+    else
+      @last_direction = @velocity\direction_name!
+      "walk"
+
+    dir = @last_direction or "down"
+    if dir == "down" or dir == "up"
+      @anim\set_state base .. "_" .. dir
+
+    @anim\update ...
     super ...
     true -- still alive
 
@@ -93,7 +110,9 @@ class Game
     hello\draw 10, 10
 
   update: (dt) =>
-    @player.velocity = movement_vector 100
+    reloader\update dt
+
+    @player.velocity = movement_vector 30
     @entities\update dt
     hello\update dt
 
