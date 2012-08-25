@@ -201,6 +201,7 @@ class Autotile
 
     @map.layers[@map.solid_layer] = solid_layer
 
+
   new: (fname, @tilesets={}) =>
     sprite = FakeSpriter 16, 16
     @map = TileMap.from_image fname, sprite, {
@@ -212,6 +213,8 @@ class Autotile
     @make_solid!
 
     @autotile!
+
+    -- @lift_border!
 
   draw: =>
     @map\draw!

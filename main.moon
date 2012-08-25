@@ -11,6 +11,7 @@ require "lovekit.screen_snap"
 -- snapper = ScreenSnap!
 
 require "autotile"
+require "attack"
 
 p = (str, ...) -> g.print str\lower!, ...
 
@@ -60,6 +61,10 @@ class Player extends Entity
   new: (...) =>
     super ...
     @sprite = Spriter imgfy"img/sprite.png", 10, 13, 3
+    @last_direction = "down"
+    @cur_attack = nil
+
+    @weapon = Spear!
 
     with @sprite
       @anim = StateAnim "stand_down", {
@@ -75,6 +80,17 @@ class Player extends Entity
         walk_right:   \seq {9, 10}, 0.25
         walk_left:    \seq {9, 10}, 0.25, true
       }
+
+  is_attacking: =>
+    @cur_attack and @cur_attack.alive or false
+
+  attack: =>
+    return if @is_attacking!
+    @cur_attack = @weapon\attack self
+
+    @world.entities\add @cur_attack
+
+    print "attack", @last_direction
 
   draw: =>
     @anim\draw @box.x - @ox, @box.y - @oy
@@ -125,15 +141,17 @@ class Game
   draw: =>
     @viewport\apply!
 
+    @viewport\center_on @player
     @world\draw!
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
     -- hello\draw 10, 10
 
+    @viewport\pop!
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
     reloader\update dt
-    @player.velocity = movement_vector 40
+    @player.velocity = movement_vector 60
     @world\update dt
 
     hello\update dt
@@ -143,14 +161,16 @@ class Game
     switch key
       when " "
         print @player
+      when "x"
+        @player\attack!
 
 love.load = ->
-  g.setBackgroundColor 61, 52, 47
+  -- g.setBackgroundColor 61, 52, 47
+  g.setBackgroundColor 61/2, 52/2, 47/2
 
   font_image = imgfy"img/font.png"
   font = g.newImageFont font_image.tex, [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
   g.setFont font
-
 
   dispatch = Dispatcher Game!
   dispatch\bind love
