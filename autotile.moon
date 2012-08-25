@@ -37,30 +37,65 @@ class TileSetSpriter
       corners[1] = 14
       corners[2] = 15
 
+      if b and l and r
+        corners[3] = 20
+        corners[4] = 21
+
     if not b
       corners[3] = 44
       corners[4] = 45
+
+      if t and l and r
+        corners[1] = 38
+        corners[2] = 39
 
     if not l
       corners[1] = 24
       corners[3] = 30
 
+      if r and t and b
+        corners[2] = 25
+        corners[4] = 31
+
+
     if not r
       corners[2] = 29
       corners[4] = 35
 
+      if l and t and b
+        corners[1] = 28
+        corners[3] = 34
+
+
+    -- 90 corners
     if not t and not l
       corners[1] = 12
+
+      if b and r
+        corners[4] = 19
+
 
     if not t and not r
       corners[2] = 17
 
+      if b and l
+        corners[3] = 22
+
+
     if not b and not l
       corners[3] = 42
+
+      if t and r
+        corners[2] = 37
+
 
     if not b and not r
       corners[4] = 47
 
+      if t and l
+        corners[1] = 40
+
+    -- 240 corners
     if t and l and not tl
       corners[1] = 0
 
