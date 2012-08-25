@@ -10,6 +10,8 @@ import concat from table
 require "lovekit.screen_snap"
 -- snapper = ScreenSnap!
 
+require "autotile"
+
 p = (str, ...) -> g.print str\lower!, ...
 
 -- prints lines of text over time
@@ -94,7 +96,6 @@ class Player extends Entity
 class World
   collides: => false
 
-
 hello = Printer "hello\nworld!\n\nI think you\nwill & this\ngame!"
 
 class Game
@@ -109,12 +110,17 @@ class Game
     with @entities
       \add @player
 
+    @map = Autotile "img/map.png"
+
   draw: =>
     @viewport\apply!
+
+    @map\draw!
     @entities\draw!
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
 
-    hello\draw 10, 10
+    -- hello\draw 10, 10
+    p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
     reloader\update dt
