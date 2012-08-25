@@ -25,6 +25,9 @@ class TileSetSpriter
       .ox = ox
       .oy = oy
 
+  is_connected: (tile, other_tile) =>
+    other_tile and tile.tid == other_tile.tid or false
+
   -- each tile needs to be encoded with it's 8 way thing
   -- true if that edge is the same sprite
   calc_corners: (t, tr, r, br, b, bl, l, tl) =>
@@ -79,6 +82,10 @@ class TileSetSpriter
       \draw_cell corners[3], x, y + @half_h
       \draw_cell corners[4], x + @half_w, y + @half_h
 
+class BorderTileSpriter extends TileSetSpriter
+  is_connected: (tile, other_tile) =>
+    other_tile == nil or tile.tid == other_tile.tid
+
 class QuadTile extends Box
   new: (@tileset, @corners, ...) =>
     super ...
@@ -90,6 +97,7 @@ class Autotile
   types: {
     floor: 1
     wall: 2
+    border: 3
   }
 
   get_surrounding: (i) =>
@@ -118,11 +126,12 @@ class Autotile
       if tileset
         touching = for k in @get_surrounding i
           other_tile = tiles[k]
-          if other_tile and other_tile.tid == tile.tid
-            true
-          else
-            false
+          tileset\is_connected tile, other_tile
 
+          -- if other_tile and other_tile.tid == tile.tid
+          --   true
+          -- else
+          --   false
 
         corners = tileset\calc_corners unpack touching
         changes[i] = QuadTile tileset, corners, tile\unpack!
@@ -142,6 +151,16 @@ class Autotile
 
     tiles[i] = t for i, t in pairs to_add
 
+  add_surrounding: (layer=1) =>
+    tiles = @map.layers[layer]
+    to_add = {}
+    for i, tile in pairs tiles
+      for k in @get_surrounding i
+        if not tiles[k] and not to_add[k]
+          to_add[k] = Tile @types.border, @map\pos_for_i k
+
+    tiles[i] = t for i, t in pairs to_add
+
   new: (fname, @tilesets={}) =>
     sprite = FakeSpriter 16, 16
     @map = TileMap.from_image fname, sprite, {
@@ -149,6 +168,7 @@ class Autotile
     }
     
     @add_walls!
+    @add_surrounding!
     @autotile!
 
   draw: =>

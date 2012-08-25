@@ -113,6 +113,7 @@ class Game
     @map = Autotile "img/map.png", {
       [1]: TileSetSpriter "img/tiles.png", 16, 16
       [2]: TileSetSpriter "img/tiles.png", 16, 16, 48
+      [3]: BorderTileSpriter "img/tiles.png", 16, 16, 48*2
     }
 
   draw: =>
