@@ -58,13 +58,21 @@ class Player extends Entity
     super ...
     @sprite = Spriter imgfy"img/sprite.png", 10, 12, 3
 
-    @anim = StateAnim "stand_down", {
-      stand_down: @sprite\seq {5}
-      stand_up:   @sprite\seq {8}
+    with @sprite
+      @anim = StateAnim "stand_down", {
+        stand_down:   \seq {5}
+        stand_up:     \seq {8}
 
-      walk_down:  @sprite\seq {3, 4}, 0.25
-      walk_up:    @sprite\seq {6, 7}, 0.25
-    }
+        stand_right:  \seq {11}
+        stand_left:   \seq {11}, 0, true
+
+        walk_down:    \seq {3, 4}, 0.25
+        walk_up:      \seq {6, 7}, 0.25
+
+        walk_right:   \seq {9, 10}, 0.25
+        walk_left:    \seq {9, 10}, 0.25, true
+
+      }
 
   draw: =>
     @anim\draw @box.x - @ox, @box.y - @oy
@@ -77,8 +85,7 @@ class Player extends Entity
       "walk"
 
     dir = @last_direction or "down"
-    if dir == "down" or dir == "up"
-      @anim\set_state base .. "_" .. dir
+    @anim\set_state base .. "_" .. dir
 
     @anim\update ...
     super ...
