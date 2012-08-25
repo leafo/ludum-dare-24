@@ -58,44 +58,38 @@ class TileSetSpriter
     if not b and not r
       corners[4] = 47
 
+    if t and l and not tl
+      corners[1] = 0
+
+    if t and r and not tr
+      corners[2] = 1
+
+    if b and l and not bl
+      corners[3] = 6
+
+    if b and r and not br
+      corners[4] = 7
+
     corners
 
-  draw_cell: (x,y, ...) =>
-    corners = @calc_corners ...
+  draw_cell: (x,y, corners) =>
     with @spriter
       \draw_cell corners[1], x, y
       \draw_cell corners[2], x + @half_w, y
       \draw_cell corners[3], x, y + @half_h
       \draw_cell corners[4], x + @half_w, y + @half_h
 
+class QuadTile extends Box
+  new: (@tileset, @corners, ...) =>
+    super ...
+
+  draw: (_, map) =>
+    @tileset\draw_cell @x, @y, @corners
+
 class Autotile
   types: {
     floor: 1
     wall: 2
-  }
-
-
-  -- clockwise from top, 8 directions
-  -- nil: don't care, true: is same, false: is not same
-  filters: {
-    -- top right bottom left
-
-    [1]: {
-      { false, nil, true,  nil, true,  nil, true,  nil, => 3 } -- top
-      { true,  nil, false, nil, true,  nil, true,  nil, => 4 } -- right
-      { true,  nil, true,  nil, false, nil, true,  nil, => 5 } -- bottom
-      { true,  nil, true,  nil, true,  nil, false, nil, => 6 } -- left
-
-      -- the parallel
-      { false, nil, true, nil, false, nil, true, nil, => 7 } -- top & bottom
-      { true, nil, false, nil, true, nil, false, nil, => 8 } -- left & right
-
-      -- the 90 deg corners
-      { false, nil, false, nil, true, nil, true, nil, => 9 } -- bottom & left
-      { true, nil, false, nil, false, nil, true, nil, => 10 } -- top & left
-      { true, nil, true, nil, false, nil, false, nil, => 11 } -- top & right
-      { false, nil, true, nil, true, nil, false, nil, => 12 } -- bottom & right
-    }
   }
 
   get_surrounding: (i) =>
@@ -114,35 +108,27 @@ class Autotile
         yield \to_i x - 1, y - 1
       nil
 
-  match_filter: (layer, filter, tid, i) =>
-    p = 1
-    for si in @get_surrounding i
-      target = si and layer[si]
 
-      switch filter[p]
-        when true -- tiles are the same
-          return false unless target and target.tid == tid
-        when false -- tiles are different
-          return false unless not target or target.tid != tid
-
-      p += 1
-
-    true
-
-  apply_filters: (layer=1) =>
+  autotile: (layer=1) =>
     tiles = @map.layers[layer]
+    changes = {}
 
-    to_change = {}
     for i, tile in pairs tiles
-      tid = tile.tid
-      filters = @filters[tid]
-      if filters
-        for filter in *filters
-          if @match_filter tiles, filter, tid, i
-            to_change[i] = filter[9]!
-            break
+      tileset = @tilesets[tile.tid]
+      if tileset
+        touching = for k in @get_surrounding i
+          other_tile = tiles[k]
+          if other_tile and other_tile.tid == tile.tid
+            true
+          else
+            false
 
-    tiles[i].tid = tid for i, tid in pairs to_change
+
+        corners = tileset\calc_corners unpack touching
+        changes[i] = QuadTile tileset, corners, tile\unpack!
+
+    tiles[i] = t for i, t in pairs changes
+
 
   add_walls: (layer=1) =>
     tiles = @map.layers[layer]
@@ -156,14 +142,14 @@ class Autotile
 
     tiles[i] = t for i, t in pairs to_add
 
-  new: (fname) =>
-    sprite = FakeSpriter 12, 12
+  new: (fname, @tilesets={}) =>
+    sprite = FakeSpriter 16, 16
     @map = TileMap.from_image fname, sprite, {
       ["59,57,77"]: { tid: @types.floor }
     }
     
     @add_walls!
-    @apply_filters!
+    @autotile!
 
   draw: =>
     @map\draw!

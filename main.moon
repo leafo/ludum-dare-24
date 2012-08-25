@@ -100,7 +100,7 @@ hello = Printer "hello\nworld!\n\nI think you\nwill & this\ngame!"
 
 class Game
   new: =>
-    @viewport = Viewport scale: 6
+    @viewport = Viewport scale: 3
 
     @entities = DrawList!
 
@@ -110,13 +110,17 @@ class Game
     with @entities
       \add @player
 
-    @chip = TileSetSpriter "img/tiles.png", 16, 16
+    @map = Autotile "img/map.png", {
+      [1]: TileSetSpriter "img/tiles.png", 16, 16
+      [2]: TileSetSpriter "img/tiles.png", 16, 16, 48
+    }
 
   draw: =>
     @viewport\apply!
 
+    @map\draw!
     -- @chip\draw_cell false, true, true, true, false, true, true, true, 10, 10
-    @chip\draw_cell 10, 10, false, true, true, true, true, true, false, true
+    -- @chip\draw_cell 10, 10, false, true, true, true, true, true, false, true
 
     @entities\draw!
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
