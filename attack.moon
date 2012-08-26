@@ -2,18 +2,15 @@
 g = love.graphics
 import timer, keyboard, audio from love
 
--- attacks as sequences
-
 export ^
 
--- a factor for attacks
 class Spear
   watch_class self
 
   ox: 0, oy: 0
 
-  w: 4
-  h: 3
+  w: 6
+  h: 5
 
   box_offsets: {
     left:   {-5, -3}

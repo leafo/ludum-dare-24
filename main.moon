@@ -84,12 +84,10 @@ class Player extends Entity
       }
 
   attack: =>
-    print "attack", @last_direction
     @weapon\try_attack!
 
   take_hit: (enemy) =>
     return if @hit
-    print "hitting.."
     @hit = Flash!
 
   draw: =>
