@@ -18,6 +18,22 @@ class Flash extends Sequence
   after: =>
     graphics.setColor @tmp_color
 
+class Emitter extends Sequence
+  y: 0 -- so it can be sorted *_*
+  alive: true
+
+  new: (@world, x, y, duration=0.2, count=5, @make_particle) =>
+    dt = duration / count
+    super ->
+      while count > 0
+        count -= 1
+        @world.particles\add @make_particle x,y
+        wait dt
+
+  draw: =>
+
+class BloodEmitter extends Emitter
+  make_particle: (x,y) => BloodParticle x,y
 
 class Particle
   life: 1.0
@@ -39,6 +55,16 @@ class Particle
     @life > 0
 
   draw: =>
+
+class PixelParticle extends Particle
+  size: 2
+  draw: =>
+    half = @size/2
+    with graphics
+      r,g,b,a = .getColor!
+      .setColor @r, @g, @b, @a * 255
+      .rectangle "fill", @x - half, @y - half, @size, @size
+      .setColor r,g,b,a
 
 class NumberParticle extends Particle
   life: 0.8
@@ -89,4 +115,12 @@ class NumberParticle extends Particle
       .setColor r,g,b,a
       .setFont fonts.main
     
+class BloodParticle extends PixelParticle
+  spead: 40
+  life: 0.4
+  r: 150, g: 50, b: 50
+
+  new: (@x, @y) =>
+    @velocity = Vec2d.from_angle(math.random(270-@spead/2, 270+@spead/2)) * math.random(20,60)
+    @accel = Vec2d 0, 200
 

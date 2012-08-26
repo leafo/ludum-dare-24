@@ -70,6 +70,9 @@ class Enemy extends Entity
     return if @hit
     @hit = Flash!
     damage = weapon\calc_damage self
-    @world.particles\add NumberParticle damage, @box\center!
+
+    x,y = @box\center!
+    @world.particles\add NumberParticle damage, x,y
+    @world.particles\add BloodEmitter @world, x,y
 
 
