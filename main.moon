@@ -12,6 +12,7 @@ require "lovekit.screen_snap"
 
 require "autotile"
 require "attack"
+require "enemy"
 
 p = (str, ...) -> g.print str\lower!, ...
 
@@ -109,31 +110,40 @@ class Player extends Entity
     true -- still alive
 
 class World
-  new: =>
+  new: (@game) =>
     @map = Autotile "img/map.png", {
       [1]: TileSetSpriter "img/tiles.png", 16, 16
       [2]: TileSetSpriter "img/tiles.png", 16, 16, 48
       [3]: BorderTileSpriter "img/tiles.png", 16, 16, 48*2
     }
 
-    @entities = DrawList!
+    @entities = with DrawList!
+      \add Enemy self, 56, 100
 
   collides: (thing) => @map\collides thing
 
   draw: =>
     @map\draw!
+    @entities\sort!
     @entities\draw!
 
   update: (dt) =>
     @entities\update dt
+    -- see if player is hitting anything
+    player = @game.player
+    if player.weapon.is_attacking
+      for e in *@entities do
+        if e.take_hit and e.box\touches_box player.weapon.box
+          e\take_hit player.weapoon
 
 hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
 class Game
   new: =>
     @viewport = Viewport scale: 3
+    -- g.setLineWidth 1/@viewport.screen.scale
 
-    @world = World!
+    @world = World self
     @player = Player @world, 42, 64
     @world.entities\add @player
 
@@ -171,6 +181,13 @@ love.load = ->
   font = g.newImageFont font_image.tex, [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
   g.setFont font
 
-  dispatch = Dispatcher Game!
+  game = Game!
+  dispatch = Dispatcher game
   dispatch\bind love
+
+  love.mousepressed = (x,y, button) ->
+    x, y = game.viewport\unproject x, y
+    print "mouse", x, y, button
+
+
 
