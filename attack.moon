@@ -2,6 +2,8 @@
 g = love.graphics
 import timer, keyboard, audio from love
 
+-- attacks as sequences
+
 export ^
 
 -- a factor for attacks
@@ -16,9 +18,8 @@ class Spear
   }
 
   new: =>
-    @sprite = Spriter "img/sprite.png"
-    with @sprite
-      @states = {
+    @sprite = with Spriter
+      @anim = StateAnim "down", {
         left:   \seq {"40,5,11,5"}, 0, true
         up:     \seq {"43,13,5,11"}
 
@@ -26,8 +27,17 @@ class Spear
         down:   \seq {"43,13,5,11"}, 0, true, true
       }
 
+  -- draw on player
+  draw: (player) =>
+    direction = player.last_direction
+    return unless direction
+    @anim\set_state direction
+
+    ox, oy = unpack @offsets[direction]
+    @anim\draw player.box.x + ox, player.box.y + oy
+
   attack: (player) =>
-    Attack player, self, @states
+    -- Attack player, self, @states
 
 class Attack
   w: 10

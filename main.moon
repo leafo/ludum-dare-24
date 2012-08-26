@@ -88,12 +88,12 @@ class Player extends Entity
     return if @is_attacking!
     @cur_attack = @weapon\attack self
 
-    @world.entities\add @cur_attack
-
+    @world.entities\add @cur_attack if @cur_attack
     print "attack", @last_direction
 
   draw: =>
     @anim\draw @box.x - @ox, @box.y - @oy
+    @weapon\draw self if @weapon
 
   update: (...) =>
     base = if @velocity\is_zero! then
