@@ -133,6 +133,8 @@ class World
     }
 
     @particles = DrawList!
+    @high_particles = DrawList!
+
     @entities = with DrawList!
       -- .show_boxes = true
       \add Enemy self, 56, 100
@@ -140,16 +142,22 @@ class World
   collides: (thing) => @map\collides thing
 
   draw: =>
-    @map\draw!
+    @map\draw_below @game.viewport
+
     @entities\sort!
     @entities\draw!
 
     @particles\sort_pts!
     @particles\draw!
 
+    @map\draw_above @game.viewport
+
+    @high_particles\draw!
+
   update: (dt) =>
     @entities\update dt
     @particles\update dt
+    @high_particles\update dt
 
     player = @game.player
 

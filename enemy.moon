@@ -72,7 +72,7 @@ class Enemy extends Entity
     damage = weapon\calc_damage self
 
     x,y = @box\center!
-    @world.particles\add NumberParticle damage, x,y
+    @world.high_particles\add NumberParticle damage, x,y
     @world.particles\add BloodEmitter @world, x,y
 
 

@@ -201,6 +201,18 @@ class Autotile
 
     @map.layers[@map.solid_layer] = solid_layer
 
+  -- bring the border up a layer
+  lift_border: (layer=1, to_layer=2) =>
+    to_move = {}
+    tileset = @tilesets[@types.border]
+
+    for i, tile in pairs @map.layers[layer]
+      if tile.tileset == tileset
+        to_move[i] = tile
+
+    for i, tile in pairs to_move
+      @map.layers[layer][i] = nil
+      @map.layers[to_layer][i] = tile
 
   new: (fname, @tilesets={}) =>
     sprite = FakeSpriter 16, 16
@@ -214,10 +226,10 @@ class Autotile
 
     @autotile!
 
-    -- @lift_border!
+    @lift_border!
 
-  draw: =>
-    @map\draw!
+  draw_below: (...) => @map\draw_layer 1, ...
+  draw_above: (...) => @map\draw_layer 2, ...
 
   collides: (thing) =>
     @map\collides thing
