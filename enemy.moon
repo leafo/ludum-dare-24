@@ -20,7 +20,6 @@ class MoveSequence extends Sequence
         coroutine.yield "more", -time
   }
 
-
 class Enemy extends Entity
   watch_class self
 
@@ -31,6 +30,8 @@ class Enemy extends Entity
   oy: -6
 
   alive: true
+
+  life: 100
 
   __tostring: => ("<Slime %s, %s>")\format @box\pos!
 
@@ -66,8 +67,9 @@ class Enemy extends Entity
   hurt_player: (player) => player\take_hit self
 
   take_hit: (weapon) =>
-    print "trying hit", @hit
     return if @hit
-    print "taking hit!"
     @hit = Flash!
+    damage = weapon\calc_damage self
+    @world.particles\add NumberParticle damage, @box\center!
+
 

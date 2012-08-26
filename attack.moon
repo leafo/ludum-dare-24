@@ -82,3 +82,6 @@ class Spear
       @is_attacking = false
       tween self, 0.1, ox: 0, oy: 0
 
+  calc_damage: (entity) =>
+    math.random 8,10
+

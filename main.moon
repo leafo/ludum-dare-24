@@ -132,6 +132,7 @@ class World
       [3]: BorderTileSpriter "img/tiles.png", 16, 16, 48*2
     }
 
+    @particles = DrawList!
     @entities = with DrawList!
       -- .show_boxes = true
       \add Enemy self, 56, 100
@@ -143,8 +144,12 @@ class World
     @entities\sort!
     @entities\draw!
 
+    @particles\sort_pts!
+    @particles\draw!
+
   update: (dt) =>
     @entities\update dt
+    @particles\update dt
 
     player = @game.player
 
@@ -152,7 +157,7 @@ class World
     if player.weapon.is_attacking
       for e in *@entities do
         if e != player and e.take_hit and e.box\touches_box player.weapon.box
-          e\take_hit player.weapoon
+          e\take_hit player.weapon
 
     -- see if player is being hit by anything
     for e in *@entities do
@@ -196,13 +201,19 @@ class Game
       when "x"
         @player\attack!
 
+export fonts = {}
+load_font = (img, chars)->
+  font_image = imgfy img
+  g.newImageFont font_image.tex, chars
+
 love.load = ->
   -- g.setBackgroundColor 61, 52, 47
   g.setBackgroundColor 61/2, 52/2, 47/2
 
-  font_image = imgfy"img/font.png"
-  font = g.newImageFont font_image.tex, [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
-  g.setFont font
+  fonts.main = load_font "img/font.png", [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
+  fonts.damage = load_font "img/font2.png", [[ 1234567890]]
+
+  g.setFont fonts.main
 
   game = Game!
   dispatch = Dispatcher game
