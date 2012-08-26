@@ -20,16 +20,30 @@ class Flash extends Sequence
 
 
 class Particle
-  nil
-
-class NumberParticle
-  life: 0.8
-  ox: 0
-  oy: 0
+  life: 1.0
 
   r: 255
   g: 255
   b: 255
+  a: 1
+
+  new: (@x, @y) =>
+    @velocity = Vec2d 0,0
+    @accel = Vec2d 0,0
+
+  update: (dt) =>
+    @life -= dt
+    @velocity\adjust unpack @accel * dt
+    @x += @velocity.x * dt
+    @y += @velocity.y * dt
+    @life > 0
+
+  draw: =>
+
+class NumberParticle extends Particle
+  life: 0.8
+  ox: 0
+  oy: 0
 
   spead: 20
 
@@ -47,8 +61,6 @@ class NumberParticle
     @a = 1
 
   update: (dt) =>
-    @life -= dt
-
     t = 1 - @life / @@life
     @rot += dt * @drot
 
@@ -60,12 +72,7 @@ class NumberParticle
     if t > 0.5
       @a = 1 - (t - 0.5) / 0.5
 
-    @velocity\adjust unpack @accel * dt
-
-    @x += @velocity.x * dt
-    @y += @velocity.y * dt
-
-    @life > 0
+    super dt
 
   draw: =>
     with graphics
