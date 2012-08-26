@@ -50,7 +50,7 @@ class Spear
 
     ox, oy = unpack @sprite_offsets[direction]
     @anim\draw @box.x + ox, @box.y + oy
-    @box\outline! if @is_attacking
+    -- @box\outline! if @is_attacking
 
   update: (dt) =>
     direction = @player.last_direction

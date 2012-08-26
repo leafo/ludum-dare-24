@@ -3,38 +3,32 @@ import graphics from love
 
 export  ^
 
-class Flash extends Sequence
-  new: (duration=0.2, color={255,100,100}) =>
-    half = duration/2
-    super ->
-      r,g,b = graphics.getColor!
-      @color = {:r, :g, :b}
-      tween @color, half, r: color[1], g: color[2], b: color[3]
-      tween @color, half, :r, :g, :b
-
-  before: =>
-    @tmp_color = {graphics.getColor!}
-    graphics.setColor @color.r, @color.g, @color.b if @color
-
-  after: =>
-    graphics.setColor @tmp_color
-
-
 class MoveSequence extends Sequence
   @extend {
-    move: (x,y, time) ->
-      print "cool!"
+    move: (thing, x,y, time) ->
+      vx = x/time
+      vy = y/time
+
+      while time > 0
+        dt = coroutine.yield!
+        time -= dt
+
+        real_dt = if time < 0 then dt + time else dt
+        thing\fit_move real_dt * vx, real_dt * vy
+
+      if time < 0
+        coroutine.yield "more", -time
   }
 
 
 class Enemy extends Entity
   watch_class self
 
-  w: 7
-  h: 7
+  w: 6
+  h: 5
 
-  ox: -2
-  oy: -5
+  ox: -3
+  oy: -6
 
   alive: true
 
@@ -49,6 +43,9 @@ class Enemy extends Entity
 
     @ai = MoveSequence ->
       wait 1.0
+      dx, dy = unpack Vec2d.random 10
+      print dx, dy
+      move self, dx, dy, 1.0
       again!
 
   draw: =>
@@ -63,7 +60,10 @@ class Enemy extends Entity
     if @hit
       @hit = nil unless @hit\update dt
 
+    super dt
     true
+
+  hurt_player: (player) => player\take_hit self
 
   take_hit: (weapon) =>
     print "trying hit", @hit

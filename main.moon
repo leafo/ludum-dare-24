@@ -13,6 +13,7 @@ require "lovekit.screen_snap"
 require "autotile"
 require "attack"
 require "enemy"
+require "effects"
 
 p = (str, ...) -> g.print str\lower!, ...
 
@@ -86,15 +87,25 @@ class Player extends Entity
     print "attack", @last_direction
     @weapon\try_attack!
 
+  take_hit: (enemy) =>
+    return if @hit
+    print "hitting.."
+    @hit = Flash!
+
   draw: =>
     if @last_direction == "up"
       @weapon\draw! if @weapon
-      @anim\draw @box.x - @ox, @box.y - @oy
+      @draw_player!
     else
-      @anim\draw @box.x - @ox, @box.y - @oy
       @weapon\draw! if @weapon
+      @draw_player!
 
-  update: (...) =>
+  draw_player: =>
+    @hit\before! if @hit
+    @anim\draw @box.x - @ox, @box.y - @oy
+    @hit\after! if @hit
+
+  update: (dt) =>
     base = if @velocity\is_zero! then
       "stand"
     else
@@ -104,9 +115,13 @@ class Player extends Entity
     dir = @last_direction or "down"
     @anim\set_state base .. "_" .. dir
 
-    @weapon\update ... if @weapon
-    @anim\update ...
-    super ...
+    @weapon\update dt if @weapon
+    @anim\update dt
+
+    if @hit
+      @hit = nil unless @hit\update dt
+
+    super dt
     true -- still alive
 
 class World
@@ -118,6 +133,7 @@ class World
     }
 
     @entities = with DrawList!
+      -- .show_boxes = true
       \add Enemy self, 56, 100
 
   collides: (thing) => @map\collides thing
@@ -129,12 +145,19 @@ class World
 
   update: (dt) =>
     @entities\update dt
-    -- see if player is hitting anything
+
     player = @game.player
+
+    -- see if player is hitting anything
     if player.weapon.is_attacking
       for e in *@entities do
-        if e.take_hit and e.box\touches_box player.weapon.box
+        if e != player and e.take_hit and e.box\touches_box player.weapon.box
           e\take_hit player.weapoon
+
+    -- see if player is being hit by anything
+    for e in *@entities do
+      if e.hurt_player and e.box\touches_box player.box
+        e\hurt_player player
 
 hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
@@ -188,6 +211,5 @@ love.load = ->
   love.mousepressed = (x,y, button) ->
     x, y = game.viewport\unproject x, y
     print "mouse", x, y, button
-
 
 
