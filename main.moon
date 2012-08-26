@@ -64,7 +64,7 @@ class Player extends Entity
     @last_direction = "down"
     @cur_attack = nil
 
-    @weapon = Spear!
+    @weapon = Spear self
 
     with @sprite
       @anim = StateAnim "stand_down", {
@@ -92,8 +92,12 @@ class Player extends Entity
     print "attack", @last_direction
 
   draw: =>
-    @anim\draw @box.x - @ox, @box.y - @oy
-    @weapon\draw self if @weapon
+    if @last_direction == "up"
+      @weapon\draw! if @weapon
+      @anim\draw @box.x - @ox, @box.y - @oy
+    else
+      @anim\draw @box.x - @ox, @box.y - @oy
+      @weapon\draw! if @weapon
 
   update: (...) =>
     base = if @velocity\is_zero! then

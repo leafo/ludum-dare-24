@@ -14,11 +14,11 @@ class Spear
     left:   {-5, -3}
     right:  {2, -3}
     up:     {0, -10}
-    down:   {3, 0}
+    down:   {3, -1}
   }
 
-  new: =>
-    @sprite = with Spriter
+  new: (@player) =>
+    @sprite = with Spriter "img/sprite.png"
       @anim = StateAnim "down", {
         left:   \seq {"40,5,11,5"}, 0, true
         up:     \seq {"43,13,5,11"}
@@ -28,16 +28,17 @@ class Spear
       }
 
   -- draw on player
-  draw: (player) =>
-    direction = player.last_direction
+  draw: =>
+    direction = @player.last_direction
     return unless direction
     @anim\set_state direction
 
     ox, oy = unpack @offsets[direction]
-    @anim\draw player.box.x + ox, player.box.y + oy
+    @anim\draw @player.box.x + ox, @player.box.y + oy
 
-  attack: (player) =>
-    -- Attack player, self, @states
+  update: (dt) =>
+
+  attack: =>
 
 class Attack
   w: 10
