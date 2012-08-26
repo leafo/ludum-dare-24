@@ -14,6 +14,7 @@ require "autotile"
 require "attack"
 require "enemy"
 require "effects"
+require "levels.all"
 
 p = (str, ...) -> g.print str\lower!, ...
 
@@ -122,54 +123,6 @@ class Player extends Entity
     super dt
     true -- still alive
 
-class World
-  new: (@game) =>
-    @map = Autotile "img/map.png", {
-      [1]: TileSetSpriter "img/tiles.png", 16, 16
-      [2]: TileSetSpriter "img/tiles.png", 16, 16, 48
-      [3]: BorderTileSpriter "img/tiles.png", 16, 16, 48*2
-    }
-
-    @particles = DrawList!
-    @high_particles = DrawList!
-
-    @entities = with DrawList!
-      -- .show_boxes = true
-      \add Enemy self, 56, 100
-
-  collides: (thing) => @map\collides thing
-
-  draw: =>
-    @map\draw_below @game.viewport
-
-    @entities\sort!
-    @entities\draw!
-
-    @particles\sort_pts!
-    @particles\draw!
-
-    @map\draw_above @game.viewport
-
-    @high_particles\draw!
-
-  update: (dt) =>
-    @entities\update dt
-    @particles\update dt
-    @high_particles\update dt
-
-    player = @game.player
-
-    -- see if player is hitting anything
-    if player.weapon.is_attacking
-      for e in *@entities do
-        if e != player and e.take_hit and e.box\touches_box player.weapon.box
-          e\take_hit player.weapon
-
-    -- see if player is being hit by anything
-    for e in *@entities do
-      if e.hurt_player and e.box\touches_box player.box
-        e\hurt_player player
-
 hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
 class Game
@@ -177,9 +130,13 @@ class Game
     @viewport = Viewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
 
-    @world = World self
-    @player = Player @world, 42, 64
-    @world.entities\add @player
+    @player = Player nil, 42, 64
+    @set_world Level self
+
+  set_world: (world) =>
+    @world = world
+    @player.world = @world
+    world.entities\add @player
 
   draw: =>
     @viewport\apply!
