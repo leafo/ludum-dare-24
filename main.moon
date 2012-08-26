@@ -81,15 +81,9 @@ class Player extends Entity
         walk_left:    \seq {9, 10}, 0.25, true
       }
 
-  is_attacking: =>
-    @cur_attack and @cur_attack.alive or false
-
   attack: =>
-    return if @is_attacking!
-    @cur_attack = @weapon\attack self
-
-    @world.entities\add @cur_attack if @cur_attack
     print "attack", @last_direction
+    @weapon\try_attack!
 
   draw: =>
     if @last_direction == "up"
@@ -109,6 +103,7 @@ class Player extends Entity
     dir = @last_direction or "down"
     @anim\set_state base .. "_" .. dir
 
+    @weapon\update ... if @weapon
     @anim\update ...
     super ...
     true -- still alive

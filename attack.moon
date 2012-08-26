@@ -10,6 +10,8 @@ export ^
 class Spear
   watch_class self
 
+  ox: 0, oy: 0
+
   offsets: {
     left:   {-5, -3}
     right:  {2, -3}
@@ -34,11 +36,29 @@ class Spear
     @anim\set_state direction
 
     ox, oy = unpack @offsets[direction]
-    @anim\draw @player.box.x + ox, @player.box.y + oy
+    @anim\draw @player.box.x + @ox + ox, @player.box.y + @oy + oy
 
   update: (dt) =>
+    if @attack
+      alive = @attack\update dt
+      @attack = nil unless alive
 
-  attack: =>
+  try_attack: =>
+    return if @attack
+    direction = @player.last_direction
+    @attack = Sequence ->
+      tween self, 0.05, switch direction
+        when "right"
+          ox: 4
+        when "left"
+          ox: -4
+        when "down"
+          oy: 4
+        when "up"
+          oy: -4
+
+      wait 0.05
+      tween self, 0.1, ox: 0, oy: 0
 
 class Attack
   w: 10
