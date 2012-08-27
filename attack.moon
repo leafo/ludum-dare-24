@@ -61,6 +61,7 @@ class Spear
 
   try_attack: =>
     return if @attack
+    sfx\play "player_strike"
     direction = @player.last_direction
     @counter += 1
     @attack = Sequence ->

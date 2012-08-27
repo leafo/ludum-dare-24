@@ -51,6 +51,8 @@ class Player extends Entity
   watch_class self
   w: 8, h: 4
   ox: 1, oy: 8
+  speed: 80
+  step_rate: 0.25
 
   alive: true
 
@@ -79,12 +81,12 @@ class Player extends Entity
         walk_left:    \seq {9, 10}, 0.25, true
       }
 
-
   attack: =>
     @weapon\try_attack! unless @stunned
 
   take_hit: (enemy) =>
     return if @hit
+    sfx\play "player_is_hit"
     @world.game.viewport\shake!
 
     @hit = Sequence.join Flash!, Sequence ->
@@ -106,8 +108,20 @@ class Player extends Entity
     @anim\draw @box.x - @ox, @box.y - @oy
     @hit\after! if @hit
 
+  movement_vector: (dt) =>
+    v = movement_vector @speed
+    if v\is_zero!
+      @step_time = @step_rate
+    else
+      @step_time += dt
+      if @step_time >= @step_rate
+        sfx\play "step"
+        @step_time = 0
+
+    v
+
   update: (dt) =>
-    @velocity = movement_vector 120 unless @stunned
+    @velocity = @movement_vector dt unless @stunned
 
     if not @stunned
       @anim\set_state @direction_name!
@@ -169,6 +183,9 @@ class Game
       when "x"
         @player\attack!
 
+      when ";"
+        sfx\play "step"
+
 export fonts = {}
 load_font = (img, chars)->
   font_image = imgfy img
@@ -180,6 +197,16 @@ love.load = ->
 
   fonts.main = load_font "img/font.png", [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
   fonts.damage = load_font "img/font2.png", [[ 1234567890]]
+
+  export sfx = lovekit.audio.Audio!
+  sfx\preload {
+    "step"
+    "player_is_hit"
+    "player_strike"
+    "enemy_is_hit"
+    "player_die"
+    "enemy_die"
+  }
 
   g.setFont fonts.main
 

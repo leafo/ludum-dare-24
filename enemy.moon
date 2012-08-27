@@ -88,6 +88,7 @@ class Enemy extends Entity
   take_hit: (weapon) =>
     return if @hit or @life < 0
 
+    sfx\play "enemy_is_hit"
     damage = weapon\calc_damage self
 
     x,y = @box\center!
@@ -98,6 +99,7 @@ class Enemy extends Entity
     @life -= damage
 
     if @life < 0
+      sfx\play "enemy_die"
       @hit = join_effect Flash!, Fade!
     else
       @hit = Flash!
