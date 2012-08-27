@@ -39,6 +39,7 @@ class Printer extends Sequence
       -- all done
       @line = #@lines
       @char = #@lines[@line]
+      wait 1.0
 
   draw: (x, y) =>
     for i=1,@line
@@ -149,7 +150,7 @@ class Game
     -- g.setLineWidth 1/@viewport.screen.scale
 
     @player = Player nil, 428, 401
-    @set_world levels.Floor9 self
+    @set_world levels.Floor1 self
 
     @effect = ViewportFade @viewport, "in"
 
@@ -201,6 +202,54 @@ class Game
       when ";"
         sfx\play "step"
 
+
+class Intro
+  text: {
+    "Slimes!\n\nThey're everywhere!",
+    "They've invaded the castle,\n    and are living in\n     the catacombs.",
+    "They're attacking our\n    soldiers.\n\nThey've stolen our princess.",
+    "You must get them!    ",
+  }
+
+  onload: (@dispatch) => sfx.music\stop!
+
+  new: =>
+    @i = 1
+    @viewport = EffectViewport scale: 3
+    @effect = ViewportFade @viewport, "in"
+
+  begin: =>
+    @dispatch\push Game!
+
+  update: (dt) =>
+    if love.keyboard.isDown "x"
+      dt = dt * 6
+
+    if @effect
+      @effect = nil if not @effect\update dt
+    else
+      if not @writer
+        if @text[@i] == nil
+          @begin!
+          return
+
+        @writer = Printer @text[@i]
+        @i += 1
+
+      @writer = nil if not @writer\update dt
+
+  on_key: (key, code) =>
+    if key == "escape"
+      @begin!
+      true
+
+  draw: =>
+    @viewport\apply!
+    @writer\draw 10, 10 if @writer
+
+    @effect\draw! if @effect
+    @viewport\pop!
+
 class Title
   onload: (@dispatch) => sfx\play_music "slime_title"
   new: =>
@@ -221,7 +270,8 @@ class Title
     if key == "return"
       sfx\play "game_start"
       @effect = ViewportFade @viewport, "out", ->
-        @dispatch\push Game!
+        @dispatch\push Intro!
+
 
 export fonts = {}
 load_font = (img, chars)->
