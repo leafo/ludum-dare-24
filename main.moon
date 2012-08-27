@@ -56,11 +56,6 @@ class Player extends Entity
 
   __tostring: => concat { "<Player: ", tostring(@box), ">" }
 
-  state_names: {
-    walk: {"walk_up", "walk_up", "walk_down", "walk_down"}
-    stand: {"stand_up", "stand_up", "stand_down", "stand_down"}
-  }
-
   new: (...) =>
     super ...
     @sprite = Spriter imgfy"img/sprite.png", 10, 13, 3
@@ -85,11 +80,15 @@ class Player extends Entity
       }
 
   attack: =>
-    @weapon\try_attack!
+    @weapon\try_attack! unless @stunned
 
   take_hit: (enemy) =>
     return if @hit
-    @hit = Flash!
+    @hit = Sequence.join Flash!, Sequence ->
+      @velocity = enemy.box\vector_to(@box) * 10
+      @stunned = true
+      tween @velocity, 0.3, [1]: 0, [2]: 0
+      @stunned = false
 
   draw: =>
     if @last_direction == "up"
@@ -105,14 +104,17 @@ class Player extends Entity
     @hit\after! if @hit
 
   update: (dt) =>
-    base = if @velocity\is_zero! then
-      "stand"
-    else
-      @last_direction = @velocity\direction_name!
-      "walk"
+    @velocity = movement_vector 120 unless @stunned
 
-    dir = @last_direction or "down"
-    @anim\set_state base .. "_" .. dir
+    if not @stunned
+      base = if @velocity\is_zero! then
+        "stand"
+      else
+        @last_direction = @velocity\direction_name!
+        "walk"
+
+      dir = @last_direction or "down"
+      @anim\set_state base .. "_" .. dir
 
     @weapon\update dt if @weapon
     @anim\update dt
@@ -151,7 +153,6 @@ class Game
 
   update: (dt) =>
     reloader\update dt
-    @player.velocity = movement_vector 120
     @world\update dt
 
     hello\update dt
