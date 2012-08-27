@@ -3,6 +3,30 @@ import graphics from love
 export  ^
 export join_effect
 
+with_color = (color, fn) ->
+    rr, gg, bb, aa = graphics.getColor!
+    graphics.setColor unpack color
+    fn!
+    graphics.setColor rr, gg, bb, aa
+
+class ViewportFade extends Sequence
+  duration: 0.3
+
+  new: (@viewport, kind="in", callback) =>
+    start, stop = if kind == "in"
+      255,0
+    else
+      0, 255
+
+    @alpha = start
+    super ->
+      tween self, @duration, alpha: stop
+      callback! if callback
+
+  draw: =>
+    with_color {0,0,0, @alpha}, ->
+      @viewport\draw!
+
 join_effect = (...) ->
   joined = Sequence.join ...
 

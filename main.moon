@@ -147,6 +147,8 @@ class Game
     @player = Player nil, 428, 401
     @set_world Level self
 
+    @effect = ViewportFade @viewport, "in"
+
   set_world: (world) =>
     @world = world
     @player.world = @world
@@ -160,8 +162,8 @@ class Game
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
     -- hello\draw 10, 10
 
+    @effect\draw! if @effect
     @viewport\pop!
-
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
@@ -169,6 +171,9 @@ class Game
     return if @pause
     @viewport\update dt
     @world\update dt
+
+    if @effect
+      @effect = nil if not @effect\update dt
 
     hello\update dt
     snapper\tick dt if snapper
@@ -193,14 +198,22 @@ class Title
   new: =>
     @bg = imgfy "img/title.png"
     @viewport = EffectViewport scale: 1
+    @effect = ViewportFade @viewport, "in"
 
   draw: =>
     @bg\draw 0,0
+    @effect\draw! if @effect
+
+  update: (dt) =>
+    if @effect
+      @effect = nil if not @effect\update dt
 
   on_key: (key, code) =>
-    print "key", key, code
+    return if @effect
     if key == "return"
-      @dispatch\push Game!
+      sfx\play "game_start"
+      @effect = ViewportFade @viewport, "out", ->
+        @dispatch\push Game!
 
 export fonts = {}
 load_font = (img, chars)->
@@ -216,6 +229,7 @@ love.load = ->
 
   export sfx = lovekit.audio.Audio!
   sfx\preload {
+    "game_start"
     "step"
     "player_is_hit"
     "player_strike"
