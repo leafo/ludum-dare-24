@@ -134,7 +134,7 @@ class Game
     @viewport = EffectViewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
 
-    @player = Player nil, 42, 64
+    @player = Player nil, 70, 90
     @set_world Level self
 
   set_world: (world) =>
@@ -156,6 +156,7 @@ class Game
 
   update: (dt) =>
     reloader\update dt
+    return if @pause
     @viewport\update dt
     @world\update dt
 
@@ -164,8 +165,13 @@ class Game
 
   on_key: (key, code) =>
     switch key
+      when "p"
+        @pause = not @pause
       when " "
-        print @player
+        print "player is", @player.alive
+        for i, e in ipairs @world.entities
+          print i, e.__class.__name, e.alive
+
       when "x"
         @player\attack!
 

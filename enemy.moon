@@ -105,6 +105,7 @@ class Enemy extends Entity
 module "enemies", package.seeall
 
 class GreenSlime extends Enemy
+  life: 15
   new: (...) =>
     super ...
     @sprite = with Spriter imgfy"img/sprite.png", 10, 13
@@ -120,10 +121,65 @@ class GreenSlime extends Enemy
       again!
 
 
+class Bullet extends Entity
+  watch_class self
+  ox: -3, oy: -3
+  size: 2
+
+  @id =  0
+
+  __tostring: => "<Bullet " .. tostring(@@id) .. ">"
+
+  new: (@world, x, y, @anim, @velocity) =>
+    @@id += 1
+    @box = Box x,y, @size, @size
+
+  update: (dt) =>
+    @anim\update dt
+    colx, coly = super dt
+    not @hit and not colx and not coly
+
+  draw: =>
+    blend = graphics.getBlendMode!
+    graphics.setBlendMode "multiplicative"
+    @anim\draw @box.x + @ox, @box.y + @oy
+    graphics.setBlendMode blend
+
+  hurt_player: (player) =>
+    @hit = true
+    player\take_hit self
+
+
+class BounceBullet extends Bullet
+  time: 1.3
+
+  update: (dt) =>
+    @time -= dt
+
+    @anim\update dt
+    colx, coly = Entity.update self, dt
+
+    @velocity[1] = -@velocity[1] if colx
+    @velocity[2] = -@velocity[2] if coly
+
+    not @hit and @time > 0
+
+  draw: =>
+    -- fade out
+    if @time < 0.3
+      r,g,b,a = graphics.getColor!
+      graphics.setColor r,g,b, 255 * @time / 0.3
+      super!
+      graphics.setColor r,g,b,a
+    else
+      super!
+
 class BlueSlime extends Enemy
+  life: 21
+
   new: (...) =>
     super ...
-    @sprite = with Spriter imgfy"img/sprite.png", 10, 13
+    @sprite = with Spriter "img/sprite.png", 10, 13
       .ox = 80
 
     @anim = @sprite\seq {0, 1}, 0.2
@@ -145,4 +201,50 @@ class BlueSlime extends Enemy
 
       again!
 
+class RedSlime extends Enemy
+  bullet_cls: Bullet
+  life: 31
+
+  new: (...) =>
+    super ...
+    @sprite = with Spriter imgfy"img/sprite.png", 10, 13
+      .ox = 100
+
+    @anim = @sprite\seq {0, 1}, 0.2
+    @bullet_sprite = Spriter "img/sprite.png"
+
+  shoot: (vec) =>
+    anim = @bullet_sprite\seq { "101,28,8,9", "111,29,8,9" }, 0.1
+    x,y = @box\center!
+    vel = vec\normalized! * 50
+
+    @world.entities\add self.bullet_cls @world, x,y, anim, vel
+
+  spray: (vec) =>
+    for deg=0,360,30
+      @shoot Vec2d.from_angle deg
+
+  make_ai: =>
+    @ai = MoveSequence ->
+      wait 0.5
+      player = @world.game.player
+      vec = @box\vector_to player.box
+      len = vec\len!
+
+      if math.random() < 0.5 and len < 65
+        if len < 40
+          shake self, 1.5, 2, 1
+          @spray!
+          wait 0.5
+        else
+          @shoot vec
+      else
+        dx, dy = unpack Vec2d.random 10
+        move self, dx, dy, 1.0
+
+      wait 0.5
+      again!
+
+class BounceRed extends RedSlime
+  bullet_cls: BounceBullet
 

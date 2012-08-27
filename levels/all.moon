@@ -16,11 +16,8 @@ class World
     @map\draw_below @game.viewport
     @decorations\draw!
 
-    @entities\sort!
-    @entities\draw!
-
-    @particles\sort_pts!
-    @particles\draw!
+    @entities\draw_sorted!
+    @particles\draw_sorted!
 
     @map\draw_above @game.viewport
 
@@ -42,7 +39,7 @@ class World
 
     -- see if player is being hit by anything
     for e in *@entities do
-      if e.hurt_player and e.box\touches_box player.box
+      if e.alive and e.hurt_player and e.box\touches_box player.box
         e\hurt_player player if not e.life or e.life > 0
 
 class Decoration extends Box
@@ -139,6 +136,10 @@ class Level extends World
 
     ["249,244,156"]: (x,y) =>
       @entities\add enemies.BlueSlime self,x,y
+      Autotile.types.floor
+
+    ["179,158,125"]: (x,y) =>
+      @entities\add enemies.RedSlime self,x,y
       Autotile.types.floor
   }
 
