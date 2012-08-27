@@ -138,6 +138,8 @@ class Player extends Entity
 hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
 class Game
+  onload: (@dispatch) => sfx\play_music "slime"
+
   new: =>
     @viewport = EffectViewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
@@ -186,6 +188,20 @@ class Game
       when ";"
         sfx\play "step"
 
+class Title
+  onload: (@dispatch) => sfx\play_music "slime_title"
+  new: =>
+    @bg = imgfy "img/title.png"
+    @viewport = EffectViewport scale: 1
+
+  draw: =>
+    @bg\draw 0,0
+
+  on_key: (key, code) =>
+    print "key", key, code
+    if key == "return"
+      @dispatch\push Game!
+
 export fonts = {}
 load_font = (img, chars)->
   font_image = imgfy img
@@ -210,13 +226,13 @@ love.load = ->
 
   g.setFont fonts.main
 
-  game = Game!
-  dispatch = Dispatcher game
+  -- game = Game!
+  dispatch = Dispatcher Title!
   dispatch\bind love
 
   love.mousepressed = (x,y, button) ->
-    x, y = game.viewport\unproject x, y
-    print "mouse", x, y, button
-    print game.world.map
+    -- x, y = game.viewport\unproject x, y
+    -- print "mouse", x, y, button
+    -- print game.world.map
 
 
