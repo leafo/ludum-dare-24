@@ -82,7 +82,6 @@ class Enemy extends Entity
     @life -= damage
 
     if @life < 0
-      print "DEAD"
       @hit = join_effect Flash!, Fade!
     else
       @hit = Flash!

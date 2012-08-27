@@ -84,6 +84,8 @@ class Player extends Entity
 
   take_hit: (enemy) =>
     return if @hit
+    @world.game.viewport\shake!
+
     @hit = Sequence.join Flash!, Sequence ->
       @velocity = enemy.box\vector_to(@box) * 10
       @stunned = true
@@ -129,7 +131,7 @@ hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
 class Game
   new: =>
-    @viewport = Viewport scale: 3
+    @viewport = EffectViewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
 
     @player = Player nil, 42, 64
@@ -153,6 +155,7 @@ class Game
 
   update: (dt) =>
     reloader\update dt
+    @viewport\update dt
     @world\update dt
 
     hello\update dt
