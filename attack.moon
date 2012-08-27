@@ -9,21 +9,21 @@ class Spear
 
   ox: 0, oy: 0
 
-  w: 6
-  h: 5
+  w: 7
+  h: 7
 
   box_offsets: {
-    left:   {-5, -3}
-    right:  {8, -3}
-    up:     {0, -10}
-    down:   {3, 5}
+    left:   {-7, -4}
+    right:  {8, -4}
+    up:     {-1, -12}
+    down:   {2, 5}
   }
 
   sprite_offsets: {
-    left:   {-1,0}
-    right:  {-5,0}
-    up:     {0,0}
-    down:   {0,-6}
+    left:   {-7,-3}
+    right:  {3,-3}
+    up:     {0,-12}
+    down:   {3,0}
   }
 
   new: (@player) =>
@@ -46,8 +46,8 @@ class Spear
     @anim\set_state direction
 
     ox, oy = unpack @sprite_offsets[direction]
-    @anim\draw @box.x + ox, @box.y + oy
-    -- @box\outline! if @is_attacking
+    @anim\draw @player.box.x + ox + @ox, @player.box.y + oy + @oy
+    -- @box\outline! -- if @is_attacking
 
   update: (dt) =>
     direction = @player.last_direction

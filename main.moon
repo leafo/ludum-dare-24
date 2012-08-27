@@ -151,6 +151,7 @@ class Game
     -- hello\draw 10, 10
 
     @viewport\pop!
+
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
