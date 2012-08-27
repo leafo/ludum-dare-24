@@ -340,7 +340,7 @@ class MadDog extends Enemy
       again!
 
 class HugeSlime extends RedSlime
-  life: 500
+  life: 200
   ox: -20, oy: -15
   w: 35, h: 30
 
@@ -390,11 +390,13 @@ class HugeSlime extends RedSlime
         shake self, 0.6, 1, 1
         charge self, @box\vector_to(player.box), 200, 0.4
         wait 0.5
-      else
-        dx, dy = unpack Vec2d.random 10
-        move self, dx, dy, 0.6
-        vec = @box\vector_to player.box
 
+      dx, dy = if r < 0.5
+        unpack @box\vector_to(player.box)\normalized! * 15
+      else
+        unpack Vec2d.random 15
+
+      move self, dx, dy, 0.8
 
       again!
 
