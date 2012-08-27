@@ -54,8 +54,7 @@ class Enemy extends Entity
   w: 6
   h: 5
 
-  ox: -3
-  oy: -6
+  ox: 0, oy: 0
 
   alive: true
 
@@ -116,6 +115,8 @@ module "enemies", package.seeall
 
 -- wanders around
 class GreenSlime extends Enemy
+  ox: -3, oy: -6
+
   life: 15
   blood_color: {267,244,129}
 
@@ -189,6 +190,7 @@ class BounceBullet extends Bullet
 
 -- charges
 class BlueSlime extends Enemy
+  ox: -3, oy: -6
   life: 21
 
   blood_color: {65,141,255}
@@ -218,6 +220,7 @@ class BlueSlime extends Enemy
       again!
 
 class RedSlime extends Enemy
+  ox: -3, oy: -6
   bullet_cls: Bullet
   life: 31
 
@@ -268,7 +271,7 @@ class BadRedSlime extends RedSlime
 
 
 class MadDog extends Enemy
-  life: 45
+  life: 25
 
   new: (...) =>
     super ...
@@ -299,6 +302,11 @@ class MadDog extends Enemy
     v += other_vel if other_vel
     @anim\set_state @direction_name "left", v
 
+    if @last_direction == "left" or @last_direction == "right"
+      @ox, @oy = -5, -2
+    else
+      @ox, @oy = 0, -3
+
   update: (dt) =>
     super dt
 
@@ -308,8 +316,11 @@ class MadDog extends Enemy
       player = @world.game.player
       vec = @box\vector_to player.box
 
-      if vec\len! < 60
+      if math.random() < 0.3
         shake self, 0.3, 2, 1
+        wait 1.0
+      elseif vec\len! < 60
+        shake self, 1.0, 1, 1
         charge self, vec, 150, 0.3
         wait 0.1
         charge self, @box\vector_to(player.box), 150, 0.3

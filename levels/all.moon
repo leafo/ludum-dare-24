@@ -3,7 +3,8 @@ export ^
 class World
   new: (@game) =>
     @decorations = DrawList!
-    @entities = DrawList!
+    @entities = with DrawList!
+      .show_boxes = false
 
     @map = @make_map!
 
