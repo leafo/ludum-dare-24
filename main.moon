@@ -241,6 +241,7 @@ love.load = ->
     "enemy_die"
     "spread_shot"
     "single_shot"
+    "hit_switch"
   }
 
   g.setFont fonts.main

@@ -44,8 +44,11 @@ class World
         e\hurt_player player if not e.life or e.life > 0
 
     for d in *@decorations do
-      if d.hurt_player and d.box\touches_box player.box
-        d\hurt_player player
+      if d.hurt_player and d\touches_box player.box
+        d\hurt_player player, self
+
+      if d.on_touch and d\touches_box player.box
+        d\on_touch player, self
 
 class Decoration extends Box
   w: 16, h: 16
@@ -56,12 +59,13 @@ class Decoration extends Box
     @y += @oy
 
     if not Decoration.__base.sprite
-      Decoration.__base.sprite = with Spriter "img/tiles.png", @w, @h, 14
+      Decoration.__base.sprite = with Spriter "img/tiles.png", @w, @h
         .oy = 64
 
   update: (dt) => true
   draw: =>
     @sprite\draw_cell @cell_id, @x - @ox, @y - @oy
+    -- @outline!
 
 class UpDoor extends Decoration
   cell_id: 2
@@ -72,8 +76,38 @@ class DownDoor extends Decoration
   ox: 2, oy: 5
   w: 13, h: 9
 
-  on_touch: (player) => print "touching exit"
+  on_touch: (player) =>
+    @touched = true
+    print "touching exit"
 
+class ExitSwitch extends Decoration
+  cell_id: 2
+  off: 14, on: 15
+
+  w: 8, h: 5
+  ox: 4, oy: 7
+
+  new: (x,y) =>
+    super x,y, @off
+
+  on_touch: (player, world) =>
+    return if @touched
+    sfx\play "hit_switch"
+    @touched = true
+    @cell_id = @on
+
+    world.exit_door.show = true if world.exit_door
+
+
+class HiddenDoor extends DownDoor
+  show: false
+
+  on_touch: =>
+    return unless @show
+    super!
+
+  draw: =>
+    super! if @show
 
 class RandomDecor extends Decoration
   cells: {}
@@ -88,18 +122,18 @@ class WallDecor extends RandomDecor
 
 class BloodPit extends Decoration
   w: 10, h: 7
+  ox: 3, oy: 4
 
   new: (x, y) =>
     super x, y
     @anim = @sprite\seq { 11, 12, 13 }, 0.4
-    @box = Box x + 3, y + 4, @w, @h
 
   update: (dt) =>
     @anim\update dt
     super
 
   hurt_player: (player) =>
-    player\take_hit self
+    player\take_hit box: self
 
   draw: =>
     @anim\draw @x - @ox, @y - @oy
@@ -125,6 +159,15 @@ class Level extends World
 
     ["62,160,69"]: (x,y) =>
       @decorations\add DownDoor x,y
+      Autotile.types.floor
+
+    ["59,255,73"]: (x,y) =>
+      @exit_door = HiddenDoor x,y
+      @decorations\add @exit_door
+      Autotile.types.floor
+
+    ["255,59,242"]: (x,y) =>
+      @decorations\add ExitSwitch x,y
       Autotile.types.floor
 
     ["160,62,62"]: (x,y) =>
