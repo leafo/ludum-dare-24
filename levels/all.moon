@@ -50,6 +50,7 @@ class World
       if d.on_touch and d\touches_box player.box
         d\on_touch player, self
 
+
 class Decoration extends Box
   w: 16, h: 16
   ox: 0, oy: 0
@@ -59,7 +60,7 @@ class Decoration extends Box
     @y += @oy
 
     if not Decoration.__base.sprite
-      Decoration.__base.sprite = with Spriter "img/tiles.png", @w, @h
+      Decoration.__base.sprite = with Spriter "img/tiles.png", @w, @h, 16
         .oy = 64
 
   update: (dt) => true
@@ -116,10 +117,16 @@ class RandomDecor extends Decoration
     super x,y, @cells[math.random 1, #@cells]
 
 class FloorDecor extends RandomDecor
-  cells: { 10 }
+  cells: { 10, 17, 18, 19, 20, 21, 22 }
+
+class FloorDecorBlood extends RandomDecor
+  cells: { 7 }
 
 class WallDecor extends RandomDecor
   cells: { 9, 8 }
+
+class WallDecorBlood extends RandomDecor
+  cells: { 4,5,6 }
 
 class BloodPit extends Decoration
   w: 10, h: 7
@@ -179,6 +186,10 @@ class Level extends World
       @decorations\add WallDecor x,y
       nil
 
+    ["66,96,255"]: (x, y) =>
+      @decorations\add WallDecorBlood x,y
+      nil
+
     ["41,40,54"]: (x,y) =>
       @decorations\add FloorDecor x,y
       Autotile.types.floor
@@ -227,11 +238,42 @@ class Level extends World
 
 module "levels", package.seeall
 
+-- so much for DRY
 class Floor1 extends Level
   map_file: "img/floor1.png"
   next_level: -> levels.Floor2
 
 class Floor2 extends Level
   map_file: "img/floor2.png"
-  next_level: -> nil
+  next_level: -> levels.Floor3
+
+class Floor3 extends Level
+  map_file: "img/floor3.png"
+  next_level: -> levels.Floor4
+
+class Floor4 extends Level
+  map_file: "img/floor4.png"
+  next_level: -> levels.Floor5
+
+class Floor5 extends Level
+  map_file: "img/floor5.png"
+  next_level: -> levels.Floor6
+
+class Floor6 extends Level
+  map_file: "img/floor6.png"
+  next_level: -> levels.Floor7
+
+class Floor7 extends Level
+  map_file: "img/floor7.png"
+  next_level: -> levels.Floor8
+
+class Floor8 extends Level
+  map_file: "img/floor8.png"
+  next_level: -> levels.Floor9
+
+class Floor9 extends Level
+  map_file: "img/floor9.png"
+  next_level: ->
+    error "umm"
+
 

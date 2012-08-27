@@ -149,7 +149,7 @@ class Game
     -- g.setLineWidth 1/@viewport.screen.scale
 
     @player = Player nil, 428, 401
-    @set_world levels.Floor1 self
+    @set_world levels.Floor9 self
 
     @effect = ViewportFade @viewport, "in"
 
@@ -190,10 +190,10 @@ class Game
     switch key
       when "p"
         @pause = not @pause
-      when " "
-        print "player is", @player.alive
-        for i, e in ipairs @world.entities
-          print i, e.__class.__name, e.alive
+      -- when " "
+      --   print "player is", @player.alive
+      --   for i, e in ipairs @world.entities
+      --     print i, e.__class.__name, e.alive
 
       when "x"
         @player\attack!
@@ -259,5 +259,4 @@ love.load = ->
     -- x, y = game.viewport\unproject x, y
     -- print "mouse", x, y, button
     -- print game.world.map
-
 
