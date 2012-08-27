@@ -57,7 +57,8 @@ class Emitter extends Sequence
   draw: =>
 
 class BloodEmitter extends Emitter
-  make_particle: (x,y) => BloodParticle x,y
+  blood_color: {}
+  make_particle: (x,y) => BloodParticle x,y, unpack @blood_color
 
 class Particle
   life: 1.0
@@ -144,7 +145,7 @@ class BloodParticle extends PixelParticle
   life: 0.4
   r: 150, g: 50, b: 50
 
-  new: (@x, @y) =>
+  new: (@x, @y, @r, @g, @b) =>
     @velocity = Vec2d.from_angle(math.random(270-@spead/2, 270+@spead/2)) * math.random(20,60)
     @accel = Vec2d 0, 200
 

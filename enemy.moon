@@ -42,6 +42,8 @@ class MoveSequence extends Sequence
 class Enemy extends Entity
   watch_class self
 
+  blood_color: {}
+
   w: 6
   h: 5
 
@@ -84,7 +86,8 @@ class Enemy extends Entity
 
     x,y = @box\center!
     @world.high_particles\add NumberParticle damage, x,y
-    @world.particles\add BloodEmitter @world, x,y
+    @world.particles\add with BloodEmitter @world, x,y
+      .blood_color = @blood_color
 
     @life -= damage
 
@@ -106,6 +109,8 @@ module "enemies", package.seeall
 
 class GreenSlime extends Enemy
   life: 15
+  blood_color: {267,244,129}
+
   new: (...) =>
     super ...
     @sprite = with Spriter imgfy"img/sprite.png", 10, 13
@@ -177,6 +182,8 @@ class BounceBullet extends Bullet
 class BlueSlime extends Enemy
   life: 21
 
+  blood_color: {65,141,255}
+
   new: (...) =>
     super ...
     @sprite = with Spriter "img/sprite.png", 10, 13
@@ -204,6 +211,8 @@ class BlueSlime extends Enemy
 class RedSlime extends Enemy
   bullet_cls: Bullet
   life: 31
+
+  blood_color: {255,200,200}
 
   new: (...) =>
     super ...
@@ -245,6 +254,6 @@ class RedSlime extends Enemy
       wait 0.5
       again!
 
-class BounceRed extends RedSlime
+class BadRedSlime extends RedSlime
   bullet_cls: BounceBullet
 
