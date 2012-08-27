@@ -96,8 +96,8 @@ class Player extends Entity
       @weapon\draw! if @weapon
       @draw_player!
     else
-      @weapon\draw! if @weapon
       @draw_player!
+      @weapon\draw! if @weapon
 
   draw_player: =>
     @hit\before! if @hit
@@ -151,7 +151,7 @@ class Game
 
   update: (dt) =>
     reloader\update dt
-    @player.velocity = movement_vector 60
+    @player.velocity = movement_vector 120
     @world\update dt
 
     hello\update dt
@@ -185,5 +185,6 @@ love.load = ->
   love.mousepressed = (x,y, button) ->
     x, y = game.viewport\unproject x, y
     print "mouse", x, y, button
+    print game.world.map
 
 

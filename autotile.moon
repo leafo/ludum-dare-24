@@ -191,7 +191,7 @@ class Autotile
 
     tiles[i] = t for i, t in pairs to_add
 
-  make_solid: (from_layer=1)=>
+  make_solid: (from_layer=1) =>
     solid_layer = {}
     is_solid = Set { @types.wall, @types.border }
 
@@ -214,11 +214,9 @@ class Autotile
       @map.layers[layer][i] = nil
       @map.layers[to_layer][i] = tile
 
-  new: (fname, @tilesets={}) =>
+  new: (fname, @tilesets={}, color_to_tile) =>
     sprite = FakeSpriter 16, 16
-    @map = TileMap.from_image fname, sprite, {
-      ["59,57,77"]: { tid: @types.floor }
-    }
+    @map = TileMap.from_image fname, sprite, color_to_tile
 
     @add_walls!
     @add_surrounding!

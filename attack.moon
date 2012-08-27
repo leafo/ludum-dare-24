@@ -32,11 +32,11 @@ class Spear
 
     @sprite = with Spriter "img/sprite.png"
       @anim = StateAnim "down", {
-        left:   \seq {"40,5,11,5"}, 0, true
-        up:     \seq {"43,13,5,11"}
+        left:   \seq {"39,5,12,5"}, 0, true
+        up:     \seq {"43,13,5,12"}
 
-        right:  \seq {"40,5,11,5"}
-        down:   \seq {"43,13,5,11"}, 0, true, true
+        right:  \seq {"39,5,12,5"}
+        down:   \seq {"43,13,5,12"}, 0, true, true
       }
 
   -- draw on player
