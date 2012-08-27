@@ -14,7 +14,9 @@ class MoveSequence extends Sequence
         time -= dt
 
         real_dt = if time < 0 then dt + time else dt
-        thing\fit_move real_dt * vx, real_dt * vy
+        cx, cy = thing\fit_move real_dt * vx, real_dt * vy
+        vx = -vx if cx
+        vy = -vy if cy
 
       if time < 0
         coroutine.yield "more", -time
@@ -45,10 +47,10 @@ class Enemy extends Entity
 
   make_ai: =>
     @ai = MoveSequence ->
-      wait 1.0
+      wait 0.5
       dx, dy = unpack Vec2d.random 10
-      print dx, dy
       move self, dx, dy, 1.0
+      wait 0.5
       again!
 
   draw: =>
@@ -57,7 +59,7 @@ class Enemy extends Entity
     @hit\after! if @hit
 
   update: (dt) =>
-    @ai\update dt
+    @ai\update dt if @box\touches_box @world.game.viewport
     @anim\update dt
 
     if @hit

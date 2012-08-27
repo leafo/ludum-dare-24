@@ -43,7 +43,7 @@ class World
     -- see if player is being hit by anything
     for e in *@entities do
       if e.hurt_player and e.box\touches_box player.box
-        e\hurt_player player
+        e\hurt_player player if not e.life or e.life > 0
 
 class Decoration extends Box
   w: 16, h: 16
