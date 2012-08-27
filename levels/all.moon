@@ -130,9 +130,15 @@ class Level extends World
       @decorations\add FloorDecor x,y
       Autotile.types.floor
 
-    -- normal slime
+
+
+    -- bad dudes below
     ["212,201,29"]: (x,y) =>
-      @entities\add Enemy self,x,y
+      @entities\add enemies.GreenSlime self,x,y
+      Autotile.types.floor
+
+    ["249,244,156"]: (x,y) =>
+      @entities\add enemies.BlueSlime self,x,y
       Autotile.types.floor
   }
 

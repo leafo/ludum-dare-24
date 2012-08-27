@@ -18,8 +18,25 @@ class MoveSequence extends Sequence
         vx = -vx if cx
         vy = -vy if cy
 
-      if time < 0
-        coroutine.yield "more", -time
+      coroutine.yield "more", -time if time < 0
+
+    shake: (thing, total_time, mx=5, my=5, speed=10, decay_to=0) ->
+      ox, oy = thing.ox, thing.oy
+
+      time = total_time
+      while time > 0
+        time -= coroutine.yield!
+        decay = math.min(math.max(time, decay_to), 1)
+
+        dx = decay * mx * math.sin(time*10*speed)
+        dy = decay * my * math.cos(time*10*speed)
+
+        thing.ox = ox + dx
+        thing.oy = oy + dy
+
+      thing.ox, thing.oy = ox, oy
+      coroutine.yield "more", -time if time < 0
+
   }
 
 class Enemy extends Entity
@@ -39,19 +56,9 @@ class Enemy extends Entity
 
   new: (...) =>
     super ...
-    @sprite = with Spriter imgfy"img/sprite.png", 10, 13
-      .ox = 60
-
-    @anim = @sprite\seq {0, 1}, 0.2
     @make_ai!
 
-  make_ai: =>
-    @ai = MoveSequence ->
-      wait 0.5
-      dx, dy = unpack Vec2d.random 10
-      move self, dx, dy, 1.0
-      wait 0.5
-      again!
+  make_ai: => error "implement me"
 
   draw: =>
     @hit\before! if @hit
@@ -93,5 +100,49 @@ class Enemy extends Entity
     @ai = Sequence ->
       tween @velocity, 0.3, [1]: 0, [2]: 0
       @make_ai!
+
+
+module "enemies", package.seeall
+
+class GreenSlime extends Enemy
+  new: (...) =>
+    super ...
+    @sprite = with Spriter imgfy"img/sprite.png", 10, 13
+      .ox = 60
+    @anim = @sprite\seq {0, 1}, 0.2
+
+  make_ai: =>
+    @ai = MoveSequence ->
+      wait 0.5
+      dx, dy = unpack Vec2d.random 10
+      move self, dx, dy, 1.0
+      wait 0.5
+      again!
+
+
+class BlueSlime extends Enemy
+  new: (...) =>
+    super ...
+    @sprite = with Spriter imgfy"img/sprite.png", 10, 13
+      .ox = 80
+
+    @anim = @sprite\seq {0, 1}, 0.2
+
+  make_ai: =>
+    @ai = MoveSequence ->
+      wait 0.5
+      player = @world.game.player
+      vec = @box\vector_to player.box
+
+      if vec\len! < 55
+        shake self, 0.8, 2, 1
+        @velocity = vec\normalized! * 200
+        tween @velocity, 0.5, [1]: 0, [2]: 0
+      else
+        dx, dy = unpack Vec2d.random 10
+        move self, dx, dy, 1.0
+        wait 0.5
+
+      again!
 
 
