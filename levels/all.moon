@@ -141,6 +141,10 @@ class Level extends World
     ["179,158,125"]: (x,y) =>
       @entities\add enemies.RedSlime self,x,y
       Autotile.types.floor
+
+    ["219,134,0"]: (x,y) =>
+      @entities\add enemies.MadDog self,x,y
+      Autotile.types.floor
   }
 
   make_map: =>

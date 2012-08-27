@@ -13,11 +13,14 @@ class MoveSequence extends Sequence
         dt = coroutine.yield!
         time -= dt
 
+        thing\set_direction Vec2d vx, vy if thing.set_direction
+
         real_dt = if time < 0 then dt + time else dt
         cx, cy = thing\fit_move real_dt * vx, real_dt * vy
         vx = -vx if cx
         vy = -vy if cy
 
+      thing\set_direction! if thing.set_direction
       coroutine.yield "more", -time if time < 0
 
     shake: (thing, total_time, mx=5, my=5, speed=10, decay_to=0) ->
@@ -37,6 +40,10 @@ class MoveSequence extends Sequence
       thing.ox, thing.oy = ox, oy
       coroutine.yield "more", -time if time < 0
 
+    charge: (thing, dir, speed=200, decay=0.5) ->
+      thing.velocity = dir\normalized! * speed
+      Sequence.default_scope.tween thing.velocity, decay, [1]: 0, [2]: 0
+      thing\set_direction dir
   }
 
 class Enemy extends Entity
@@ -107,6 +114,7 @@ class Enemy extends Entity
 
 module "enemies", package.seeall
 
+-- wanders around
 class GreenSlime extends Enemy
   life: 15
   blood_color: {267,244,129}
@@ -179,6 +187,7 @@ class BounceBullet extends Bullet
     else
       super!
 
+-- charges
 class BlueSlime extends Enemy
   life: 21
 
@@ -256,4 +265,59 @@ class RedSlime extends Enemy
 
 class BadRedSlime extends RedSlime
   bullet_cls: BounceBullet
+
+
+class MadDog extends Enemy
+  life: 45
+
+  new: (...) =>
+    super ...
+
+    with Spriter"img/sprite.png"
+      stand_left_right = { "60,65,17,12", "60,78,17,12" }
+      stand_up_down = { "82,52,5,13", "82,65,5,13" }
+
+      left_right = {  "60,65,17,12", "60,52,17,12" }
+      up_down = { "82,52,5,13", "93,52,5,13" }
+
+      @anim = StateAnim "stand_left", {
+        stand_down:   \seq stand_up_down, 0.25, true, true
+        stand_up:     \seq stand_up_down, 0.25
+
+        stand_right:  \seq stand_left_right, 0.25, true
+        stand_left:   \seq stand_left_right, 0.25
+
+        walk_down:    \seq up_down, 0.25, false, true
+        walk_up:      \seq up_down, 0.25
+
+        walk_right:   \seq left_right, 0.25, true
+        walk_left:    \seq left_right, 0.25
+      }
+
+  set_direction: (other_vel) =>
+    v = @velocity
+    v += other_vel if other_vel
+    @anim\set_state @direction_name "left", v
+
+  update: (dt) =>
+    super dt
+
+  make_ai: =>
+    @ai = MoveSequence ->
+      wait 0.5
+      player = @world.game.player
+      vec = @box\vector_to player.box
+
+      if vec\len! < 60
+        shake self, 0.3, 2, 1
+        charge self, vec, 150, 0.3
+        wait 0.1
+        charge self, @box\vector_to(player.box), 150, 0.3
+      else
+        dx, dy = unpack Vec2d.random 25
+        move self, dx, dy, 0.6
+
+      again!
+
+
 

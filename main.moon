@@ -79,6 +79,7 @@ class Player extends Entity
         walk_left:    \seq {9, 10}, 0.25, true
       }
 
+
   attack: =>
     @weapon\try_attack! unless @stunned
 
@@ -109,14 +110,7 @@ class Player extends Entity
     @velocity = movement_vector 120 unless @stunned
 
     if not @stunned
-      base = if @velocity\is_zero! then
-        "stand"
-      else
-        @last_direction = @velocity\direction_name!
-        "walk"
-
-      dir = @last_direction or "down"
-      @anim\set_state base .. "_" .. dir
+      @anim\set_state @direction_name!
 
     @weapon\update dt if @weapon
     @anim\update dt
