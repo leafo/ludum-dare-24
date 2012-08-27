@@ -43,6 +43,10 @@ class World
       if e.alive and e.hurt_player and e.box\touches_box player.box
         e\hurt_player player if not e.life or e.life > 0
 
+    for d in *@decorations do
+      if d.hurt_player and d.box\touches_box player.box
+        d\hurt_player player
+
 class Decoration extends Box
   w: 16, h: 16
   ox: 0, oy: 0
@@ -83,13 +87,19 @@ class WallDecor extends RandomDecor
   cells: { 9, 8 }
 
 class BloodPit extends Decoration
+  w: 10, h: 7
+
   new: (x, y) =>
     super x, y
     @anim = @sprite\seq { 11, 12, 13 }, 0.4
+    @box = Box x + 3, y + 4, @w, @h
 
   update: (dt) =>
     @anim\update dt
     super
+
+  hurt_player: (player) =>
+    player\take_hit self
 
   draw: =>
     @anim\draw @x - @ox, @y - @oy
@@ -129,8 +139,6 @@ class Level extends World
       @decorations\add FloorDecor x,y
       Autotile.types.floor
 
-
-
     -- bad dudes below
     ["212,201,29"]: (x,y) =>
       @entities\add enemies.GreenSlime self,x,y
@@ -163,4 +171,11 @@ class Level extends World
     tile_colors = { k, bind v, self for k,v in pairs @tile_colors }
 
     Autotile @map_file, tilesets, tile_colors
+
+
+module "levels", package.seeall
+
+class Floor1
+  map_file: "img/floor1.png"
+  next_level: -> levels.Floor2
 
