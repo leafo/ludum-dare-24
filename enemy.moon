@@ -43,7 +43,7 @@ class MoveSequence extends Sequence
     charge: (thing, dir, speed=200, decay=0.5) ->
       thing.velocity = dir\normalized! * speed
       Sequence.default_scope.tween thing.velocity, decay, [1]: 0, [2]: 0
-      thing\set_direction dir
+      thing\set_direction dir if thing.set_direction
   }
 
 class Enemy extends Entity
@@ -59,6 +59,9 @@ class Enemy extends Entity
   alive: true
 
   life: 15
+
+  stun_time: 0.3
+  immune: false
 
   __tostring: => ("<Slime %s, %s>")\format @box\pos!
 
@@ -87,6 +90,7 @@ class Enemy extends Entity
 
   take_hit: (weapon) =>
     return if @hit or @life < 0
+    return if @immune
 
     sfx\play "enemy_is_hit"
     damage = weapon\calc_damage self
@@ -106,11 +110,12 @@ class Enemy extends Entity
 
     px, py = weapon.player.box\center!
 
-    @velocity = Vec2d(x - px, y - py) * 5
 
-    @ai = Sequence ->
-      tween @velocity, 0.3, [1]: 0, [2]: 0
-      @make_ai!
+    if @stun_time > 0
+      @velocity = Vec2d(x - px, y - py) * 5
+      @ai = Sequence ->
+        tween @velocity, @stun_time, [1]: 0, [2]: 0
+        @make_ai!
 
 
 module "enemies", package.seeall
@@ -228,6 +233,8 @@ class RedSlime extends Enemy
 
   blood_color: {255,200,200}
 
+  bullet_frames: { "101,28,8,9", "111,29,8,9" }
+
   new: (...) =>
     super ...
     @sprite = with Spriter imgfy"img/sprite.png", 10, 13
@@ -236,14 +243,17 @@ class RedSlime extends Enemy
     @anim = @sprite\seq {0, 1}, 0.2
     @bullet_sprite = Spriter "img/sprite.png"
 
-  shoot: (vec) =>
-    anim = @bullet_sprite\seq { "101,28,8,9", "111,29,8,9" }, 0.1
+  shoot: (vec, silent=false) =>
+    anim = @bullet_sprite\seq @bullet_frames, 0.1
     x,y = @box\center!
     vel = vec\normalized! * 50
+
+    sfx\play "single_shot" unless silent
 
     @world.entities\add self.bullet_cls @world, x,y, anim, vel
 
   spray: (vec) =>
+    sfx\play "spread_shot"
     for deg=0,360,30
       @shoot Vec2d.from_angle deg
 
@@ -329,21 +339,63 @@ class MadDog extends Enemy
 
       again!
 
-class HugeSlime extends Enemy
+class HugeSlime extends RedSlime
   life: 500
   ox: -20, oy: -15
   w: 35, h: 30
 
+  blood_color: {267,244,129}
+  bullet_frames: { "81,28,8,9", "91,29,8,9" }
+
+  stun_time: 0.0
+
   new: (...)  =>
-    print "making huge slime!"
     super ...
     with Spriter "img/slime.png"
       @anim = \seq {"0,0,70,51", "0,52,70,51"}, 0.25
+
+    @bullet_sprite = Spriter "img/sprite.png"
 
   update: (dt) =>
     @box = Box @box.x, @box.y, @w, @h
     super dt
 
   make_ai: =>
-    @ai = Sequence ->
+    @ai = MoveSequence ->
+      player = @world.game.player
+
+      wait 0.5
+
+      r = math.random()
+      if r < 0.1
+        -- mega attack
+        @immune = true
+        shake self, 1.5, 3, 3
+        @spray!
+        charge self, @box\vector_to(player.box), 150, 0.3
+        charge self, @box\vector_to(player.box), 250, 0.4
+        @immune = false
+        wait 1.0
+      elseif r < 0.3
+        for i=1,4
+          @shoot @box\vector_to player.box
+          wait 0.3
+        wait 1.0
+      elseif r < 0.5
+        @shoot @box\vector_to player.box
+        wait 0.4
+        @spray!
+        wait 0.5
+      elseif r < 0.8
+        shake self, 0.6, 1, 1
+        charge self, @box\vector_to(player.box), 200, 0.4
+        wait 0.5
+      else
+        dx, dy = unpack Vec2d.random 10
+        move self, dx, dy, 0.6
+        vec = @box\vector_to player.box
+
+
+      again!
+
 

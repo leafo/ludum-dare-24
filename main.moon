@@ -64,6 +64,8 @@ class Player extends Entity
     @last_direction = "down"
     @cur_attack = nil
 
+    @step_time = @step_rate
+
     @weapon = Spear self
 
     with @sprite
@@ -236,6 +238,8 @@ love.load = ->
     "enemy_is_hit"
     "player_die"
     "enemy_die"
+    "spread_shot"
+    "single_shot"
   }
 
   g.setFont fonts.main
