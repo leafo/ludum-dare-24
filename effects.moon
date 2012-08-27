@@ -1,22 +1,46 @@
 
 import graphics from love
 export  ^
+export join_effect
 
-class Flash extends Sequence
-  new: (duration=0.2, color={255,100,100}) =>
-    half = duration/2
-    super ->
-      r,g,b = graphics.getColor!
-      @color = {:r, :g, :b}
-      tween @color, half, r: color[1], g: color[2], b: color[3]
-      tween @color, half, :r, :g, :b
+join_effect = (...) ->
+  joined = Sequence.join ...
 
+  -- do in reverse order
+  joined.after = =>
+    for i=#@_seqs,1,-1
+      @_seqs[i]\after!
+
+  joined
+
+class ColorEffect extends Sequence
   before: =>
     @tmp_color = {graphics.getColor!}
-    graphics.setColor @color.r, @color.g, @color.b if @color
+    graphics.setColor unpack @color if @color
 
   after: =>
     graphics.setColor @tmp_color
+
+class Flash extends ColorEffect
+  new: (duration=0.2, color={255,100,100}) =>
+    half = duration/2
+    super ->
+      start = {graphics.getColor!}
+      @color = {unpack start}
+      tween @color, half, color
+      tween @color, half, start
+
+class Fade extends ColorEffect
+  new: (duration=0.5) ->
+    @alpha = 255
+    super ->
+      tween self, duration, alpha: 0
+
+  -- this is done like this so we can use flash an fade at same time
+  before: =>
+    @tmp_color = {graphics.getColor!}
+    r,g,b = unpack @tmp_color
+    graphics.setColor r,g,b, @alpha
 
 class Emitter extends Sequence
   y: 0 -- so it can be sorted *_*

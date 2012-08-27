@@ -3,11 +3,12 @@ export ^
 class World
   new: (@game) =>
     @decorations = DrawList!
+    @entities = DrawList!
+
     @map = @make_map!
 
     @particles = DrawList!
     @high_particles = DrawList!
-    @entities = DrawList!
 
   collides: (thing) => @map\collides thing
 
@@ -127,6 +128,11 @@ class Level extends World
 
     ["41,40,54"]: (x,y) =>
       @decorations\add FloorDecor x,y
+      Autotile.types.floor
+
+    -- normal slime
+    ["212,201,29"]: (x,y) =>
+      @entities\add Enemy self,x,y
       Autotile.types.floor
   }
 

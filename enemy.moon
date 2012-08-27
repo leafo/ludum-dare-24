@@ -31,7 +31,7 @@ class Enemy extends Entity
 
   alive: true
 
-  life: 100
+  life: 15
 
   __tostring: => ("<Slime %s, %s>")\format @box\pos!
 
@@ -41,7 +41,9 @@ class Enemy extends Entity
       .ox = 60
 
     @anim = @sprite\seq {0, 1}, 0.2
+    @make_ai!
 
+  make_ai: =>
     @ai = MoveSequence ->
       wait 1.0
       dx, dy = unpack Vec2d.random 10
@@ -62,17 +64,33 @@ class Enemy extends Entity
       @hit = nil unless @hit\update dt
 
     super dt
-    true
+    @life > 0 or @hit
 
   hurt_player: (player) => player\take_hit self
 
   take_hit: (weapon) =>
-    return if @hit
-    @hit = Flash!
+    return if @hit or @life < 0
+
     damage = weapon\calc_damage self
 
     x,y = @box\center!
     @world.high_particles\add NumberParticle damage, x,y
     @world.particles\add BloodEmitter @world, x,y
+
+    @life -= damage
+
+    if @life < 0
+      print "DEAD"
+      @hit = join_effect Flash!, Fade!
+    else
+      @hit = Flash!
+
+    px, py = weapon.player.box\center!
+
+    @velocity = Vec2d(x - px, y - py) * 5
+
+    @ai = Sequence ->
+      tween @velocity, 0.3, [1]: 0, [2]: 0
+      @make_ai!
 
 
