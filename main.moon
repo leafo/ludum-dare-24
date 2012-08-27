@@ -154,6 +154,7 @@ class Game
   set_world: (world) =>
     @world = world
     @player.world = @world
+    @player.box.x, @player.box.y = unpack @world.start_pos
     world.entities\add @player
 
   draw: =>

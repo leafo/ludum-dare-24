@@ -340,7 +340,7 @@ class MadDog extends Enemy
       again!
 
 class HugeSlime extends RedSlime
-  life: 200
+  life: 334
   ox: -20, oy: -15
   w: 35, h: 30
 

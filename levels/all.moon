@@ -110,6 +110,7 @@ class Level extends World
 
     ["160,62,97"]: (x,y) =>
       @decorations\add UpDoor x,y
+      @start_pos = {x + 4 , y + 20} -- hehe
       nil
 
     ["62,160,69"]: (x,y) =>
