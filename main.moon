@@ -128,7 +128,7 @@ class Game
     @viewport = EffectViewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
 
-    @player = Player nil, 70, 90
+    @player = Player nil, 428, 401
     @set_world Level self
 
   set_world: (world) =>

@@ -307,9 +307,6 @@ class MadDog extends Enemy
     else
       @ox, @oy = 0, -3
 
-  update: (dt) =>
-    super dt
-
   make_ai: =>
     @ai = MoveSequence ->
       wait 0.5
@@ -330,5 +327,21 @@ class MadDog extends Enemy
 
       again!
 
+class HugeSlime extends Enemy
+  life: 500
+  ox: -20, oy: -15
+  w: 35, h: 30
 
+  new: (...)  =>
+    print "making huge slime!"
+    super ...
+    with Spriter "img/slime.png"
+      @anim = \seq {"0,0,70,51", "0,52,70,51"}, 0.25
+
+  update: (dt) =>
+    @box = Box @box.x, @box.y, @w, @h
+    super dt
+
+  make_ai: =>
+    @ai = Sequence ->
 
