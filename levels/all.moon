@@ -76,9 +76,10 @@ class DownDoor extends Decoration
   ox: 2, oy: 5
   w: 13, h: 9
 
-  on_touch: (player) =>
+  on_touch: (player, world) =>
+    return if @touched
     @touched = true
-    print "touching exit"
+    world\goto_next_level!
 
 class ExitSwitch extends Decoration
   cell_id: 2
@@ -102,9 +103,9 @@ class ExitSwitch extends Decoration
 class HiddenDoor extends DownDoor
   show: false
 
-  on_touch: =>
+  on_touch: (...) =>
     return unless @show
-    super!
+    super ...
 
   draw: =>
     super! if @show
@@ -204,10 +205,19 @@ class Level extends World
       Autotile.types.floor
   }
 
+  goto_next_level: =>
+    @game.player.locked = true
+    next_level = @next_level! @game
+
+    @game.effect = ViewportFade @game.viewport, "out", ->
+      @game.player.locked = false
+      @game\set_world next_level
+      @game.effect = ViewportFade @game.viewport, "in"
+
   make_map: =>
     tilesets = for row in *@tilesets
-      cls = table.remove row, 1
-      cls unpack row
+      cls = row[1]
+      cls unpack [item for i, item in ipairs row when i > 1]
 
     -- bind all the functions in tile_colors
     bind = (fn, object) -> (...) -> fn object, ...
@@ -215,10 +225,13 @@ class Level extends World
 
     Autotile @map_file, tilesets, tile_colors
 
-
 module "levels", package.seeall
 
-class Floor1
+class Floor1 extends Level
   map_file: "img/floor1.png"
   next_level: -> levels.Floor2
+
+class Floor2 extends Level
+  map_file: "img/floor2.png"
+  next_level: -> nil
 

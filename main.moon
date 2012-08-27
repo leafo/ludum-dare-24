@@ -111,6 +111,8 @@ class Player extends Entity
     @hit\after! if @hit
 
   movement_vector: (dt) =>
+    return Vec2d 0,0 if @locked
+
     v = movement_vector @speed
     if v\is_zero!
       @step_time = @step_rate
@@ -147,15 +149,17 @@ class Game
     -- g.setLineWidth 1/@viewport.screen.scale
 
     @player = Player nil, 428, 401
-    @set_world Level self
+    @set_world levels.Floor1 self
 
     @effect = ViewportFade @viewport, "in"
 
   set_world: (world) =>
+    print "setting the world...."
     @world = world
     @player.world = @world
     @player.box.x, @player.box.y = unpack @world.start_pos
     world.entities\add @player
+    print "The world is now set!"
 
   draw: =>
     @viewport\apply!
@@ -176,7 +180,8 @@ class Game
     @world\update dt
 
     if @effect
-      @effect = nil if not @effect\update dt
+      e = @effect
+      @effect = nil if not @effect\update(dt) and e == @effect
 
     hello\update dt
     snapper\tick dt if snapper
