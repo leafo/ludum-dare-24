@@ -1,6 +1,9 @@
 
+export disable_reloader = true
+export watch_class = ->
+
 require "lovekit.all"
-reloader = require "lovekit.reloader"
+-- reloader = require "lovekit.reloader"
 
 g = love.graphics
 import timer, keyboard, audio from love
@@ -193,7 +196,7 @@ class Game
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
-    reloader\update dt
+    -- reloader\update dt
     return if @pause
     @viewport\update dt
     @world\update dt
