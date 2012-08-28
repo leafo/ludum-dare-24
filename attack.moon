@@ -65,6 +65,7 @@ class Spear
     direction = @player.last_direction
     @counter += 1
     @attack = Sequence ->
+      @is_attacking = true
       tween self, 0.05, switch direction
         when "right"
           ox: 4
@@ -75,7 +76,6 @@ class Spear
         when "up"
           oy: -4
 
-      @is_attacking = true
       wait 0.05
       @is_attacking = false
       tween self, 0.1, ox: 0, oy: 0
