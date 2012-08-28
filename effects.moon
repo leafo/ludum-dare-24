@@ -70,13 +70,15 @@ class Emitter extends Sequence
   y: 0 -- so it can be sorted *_*
   alive: true
 
-  new: (@world, x, y, duration=0.2, count=5, @make_particle) =>
+  new: (@world, x, y, duration=0.2, count=5, @make_particle, callback) =>
     dt = duration / count
     super ->
       while count > 0
         count -= 1
         @world.particles\add @make_particle x,y
         wait dt
+
+      callback! if callback
 
   draw: =>
 
@@ -143,7 +145,7 @@ class NumberParticle extends Particle
       @s += dt * 5
     elseif t > 0.8
       @s -= dt
-    
+
     if t > 0.5
       @a = 1 - (t - 0.5) / 0.5
 
@@ -163,7 +165,7 @@ class NumberParticle extends Particle
 
       .setColor r,g,b,a
       .setFont fonts.main
-    
+
 class BloodParticle extends PixelParticle
   spead: 40
   life: 0.4

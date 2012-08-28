@@ -14,6 +14,7 @@ require "autotile"
 require "attack"
 require "enemy"
 require "effects"
+require "ui"
 require "levels.all"
 
 p = (str, ...) -> g.print str\lower!, ...
@@ -54,6 +55,7 @@ class Player extends Entity
   ox: 1, oy: 8
   speed: 80
   step_rate: 0.25
+  max_life: 100
 
   alive: true
 
@@ -68,6 +70,7 @@ class Player extends Entity
     @step_time = @step_rate
 
     @weapon = Spear self
+    @life = @max_life
 
     with @sprite
       @anim = StateAnim "stand_down", {
@@ -88,15 +91,27 @@ class Player extends Entity
     @weapon\try_attack! unless @stunned
 
   take_hit: (enemy) =>
-    return if @hit or @locked
+    return if @hit or @locked or @life <= 0
     sfx\play "player_is_hit"
     @world.game.viewport\shake!
+
+    @life = @life - 12
+    if @life <= 0
+      @life = 0
+      @on_die!
 
     @hit = Sequence.join Flash!, Sequence ->
       @velocity = enemy.box\vector_to(@box) * 10
       @stunned = true
       tween @velocity, 0.3, [1]: 0, [2]: 0
       @stunned = false
+
+  on_die: =>
+    @locked = true
+    sfx\play "player_die"
+    x, y = @box\center!
+    @world.particles\add BloodEmitter @world, x, y, nil, 100, nil, ->
+      @world\restart!
 
   draw: =>
     if @last_direction == "up"
@@ -107,6 +122,7 @@ class Player extends Entity
       @weapon\draw! if @weapon
 
   draw_player: =>
+    return if @life <= 0
     @hit\before! if @hit
     @anim\draw @box.x - @ox, @box.y - @oy
     @hit\after! if @hit
@@ -152,6 +168,8 @@ class Game
     @player = Player nil, 428, 401
     @set_world levels.Floor1 self
 
+    @health_bar = HorizBar 45, 8
+
     @effect = ViewportFade @viewport, "in"
 
   set_world: (world) =>
@@ -161,12 +179,14 @@ class Game
     world.entities\add @player
 
   draw: =>
-    @viewport\apply!
-
     @viewport\center_on @player
+    @viewport\apply!
     @world\draw!
     -- p "I & you Lee! Forever Yours, Leafo.", 0,0
     -- hello\draw 10, 10
+
+    @health_bar.value = @player.life / @player.max_life
+    @health_bar\draw @viewport.x + 2, @viewport.y + @viewport.h - 10
 
     @effect\draw! if @effect
     @viewport\pop!
@@ -187,8 +207,6 @@ class Game
 
   on_key: (key, code) =>
     switch key
-      when "p"
-        -- @pause = not @pause
       when "x"
         @player\attack!
 

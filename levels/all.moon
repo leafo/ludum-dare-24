@@ -216,6 +216,16 @@ class Level extends World
       Autotile.types.floor
   }
 
+  restart: =>
+    @game.player.locked = true
+    level = self.__class @game
+
+    @game.effect = ViewportFade @game.viewport, "out", ->
+      @game.player.locked = false
+      @game.player.life = @game.player.max_life
+      @game\set_world level
+      @game.effect = ViewportFade @game.viewport, "in"
+
   goto_next_level: =>
     @game.player.locked = true
     next_level = @next_level! @game
