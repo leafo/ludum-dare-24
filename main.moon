@@ -168,8 +168,14 @@ class Game
     @viewport = EffectViewport scale: 3
     -- g.setLineWidth 1/@viewport.screen.scale
 
+    -- cheat to last level
+    level = if love.keyboard.isDown"1" and love.keyboard.isDown"2"
+      levels.Floor9
+    else
+      levels.Floor1
+
     @player = Player nil, 428, 401
-    @set_world levels.Floor1 self
+    @set_world level self
 
     @health_bar = HorizBar 45, 8
 
