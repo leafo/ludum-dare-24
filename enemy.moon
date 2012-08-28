@@ -360,6 +360,11 @@ class HugeSlime extends RedSlime
     @box = Box @box.x, @box.y, @w, @h
     super dt
 
+  take_hit: (...) =>
+    super ...
+    if @life < 0
+      @world\goto_next_level!
+
   make_ai: =>
     @ai = MoveSequence ->
       player = @world.game.player

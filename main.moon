@@ -88,7 +88,7 @@ class Player extends Entity
     @weapon\try_attack! unless @stunned
 
   take_hit: (enemy) =>
-    return if @hit
+    return if @hit or @locked
     sfx\play "player_is_hit"
     @world.game.viewport\shake!
 
@@ -205,10 +205,10 @@ class Game
 
 class Intro
   text: {
-    "Slimes!\n\nThey're everywhere!",
-    "They've invaded the castle,\n    and are living in\n     the catacombs.",
-    "They're attacking our\n    soldiers.\n\nThey've stolen our princess.",
-    "You must get them!    ",
+    "Slimes!\n\nthey're everywhere!"
+    "they've invaded the castle,\n    and are living in\n     the catacombs."
+    "they're attacking our\n    soldiers.\n\nthey've stolen our princess."
+    "you must get them!    "
   }
 
   onload: (@dispatch) => sfx.music\stop!
@@ -219,6 +219,7 @@ class Intro
     @effect = ViewportFade @viewport, "in"
 
   begin: =>
+    @dispatch\pop!
     @dispatch\push Game!
 
   update: (dt) =>
@@ -249,6 +250,19 @@ class Intro
 
     @effect\draw! if @effect
     @viewport\pop!
+
+
+export class Outro extends Intro
+  text: {
+    "Upon slaying the Huge Slime,\n    you discover the castle\n    toilets."
+    "Excrement falls down and\n    festers in a pile.\n\nWhat is this!?"
+    "The slimes have eveolved\n    from our own waste.\n\nAnd now they torment us."
+    "What will become of this\n    kingdom?",
+    "The slimes are at last dead.\n\n\nBut at what cost?"
+  }
+
+  begin: =>
+    @dispatch\pop 2
 
 class Title
   onload: (@dispatch) => sfx\play_music "slime_title"

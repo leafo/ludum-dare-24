@@ -273,7 +273,12 @@ class Floor8 extends Level
 
 class Floor9 extends Level
   map_file: "img/floor9.png"
-  next_level: ->
-    error "umm"
+  goto_next_level: =>
+    @game.player.locked = true
+    @game.effect = ViewportFade @game.viewport, "out", ->
+      @game.player.locked = false
+      @game.dispatch\push Outro!
+
+
 
 
