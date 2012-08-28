@@ -16,7 +16,7 @@ class Spear
     left:   {-8, -5}
     right:  {8, -5}
     up:     {-1, -13}
-    down:   {2, 5
+    down:   {2, 5}
   }
 
   sprite_offsets: {
