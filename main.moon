@@ -272,7 +272,7 @@ export class Outro extends Intro
   text: {
     "Upon slaying the Huge Slime,\n    you discover the castle\n    toilets."
     "Excrement falls down and\n    festers in a pile.\n\nWhat is this!?"
-    "The slimes have eveolved\n    from our own waste.\n\nAnd now they torment us."
+    "The slimes have evolved\n    from our own waste.\n\nAnd now they torment us."
     "What will become of this\n    kingdom?",
     "The slimes are at last dead.\n\n\nBut at what cost?"
   }
