@@ -9,14 +9,14 @@ class Spear
 
   ox: 0, oy: 0
 
-  w: 7
-  h: 7
+  w: 9
+  h: 9
 
   box_offsets: {
-    left:   {-7, -4}
-    right:  {8, -4}
-    up:     {-1, -12}
-    down:   {2, 5}
+    left:   {-8, -5}
+    right:  {8, -5}
+    up:     {-1, -13}
+    down:   {2, 5
   }
 
   sprite_offsets: {
