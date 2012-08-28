@@ -155,12 +155,10 @@ class Game
     @effect = ViewportFade @viewport, "in"
 
   set_world: (world) =>
-    print "setting the world...."
     @world = world
     @player.world = @world
     @player.box.x, @player.box.y = unpack @world.start_pos
     world.entities\add @player
-    print "The world is now set!"
 
   draw: =>
     @viewport\apply!
@@ -190,18 +188,9 @@ class Game
   on_key: (key, code) =>
     switch key
       when "p"
-        @pause = not @pause
-      -- when " "
-      --   print "player is", @player.alive
-      --   for i, e in ipairs @world.entities
-      --     print i, e.__class.__name, e.alive
-
+        -- @pause = not @pause
       when "x"
         @player\attack!
-
-      when ";"
-        sfx\play "step"
-
 
 class Intro
   text: {

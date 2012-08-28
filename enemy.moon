@@ -198,7 +198,7 @@ class BounceBullet extends Bullet
 -- charges
 class BlueSlime extends Enemy
   ox: -3, oy: -6
-  life: 21
+  life: 25
 
   blood_color: {65,141,255}
 
@@ -229,7 +229,7 @@ class BlueSlime extends Enemy
 class RedSlime extends Enemy
   ox: -3, oy: -6
   bullet_cls: Bullet
-  life: 31
+  life: 35
 
   blood_color: {255,200,200}
 
@@ -283,7 +283,7 @@ class BadRedSlime extends RedSlime
 
 
 class MadDog extends Enemy
-  life: 25
+  life: 35
 
   new: (...) =>
     super ...
