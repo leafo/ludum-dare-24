@@ -202,6 +202,8 @@ class Game
     p tostring(timer.getFPS!), 2, 2
 
   update: (dt) =>
+    return if dt > 1.0 -- o well
+
     -- reloader\update dt
     return if @pause
     @viewport\update dt
