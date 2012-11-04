@@ -3,7 +3,7 @@
 
 Kill some slimes in this jam packed action adventure game. 
 
-View the [Ludum Dare Submission](http://www.ludumdare.com/compo/ludum-dare-24/?action=preview&uid=4321) to download.
+View the [Ludum Dare submission](http://www.ludumdare.com/compo/ludum-dare-24/?action=preview&uid=4321) to download.
 
 ## Screenshots
 
@@ -27,7 +27,7 @@ Press ESC to to skip the intro. (It quits the game on any other screen)
 
 ## About
 
-Made in 48 hours for Ludum Dare 48
+Made in 72 hours for Ludum Dare Jam 24
 (c) Leaf "leafo" Corcoran 2012 <http://leafo.net>
 
 Must be run with Love 0.8.0 if using the `.love` file.
