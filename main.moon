@@ -10,8 +10,8 @@ import timer, keyboard, audio from love
 
 import concat from table
 
-require "lovekit.screen_snap"
--- snapper = ScreenSnap!
+export CONTROLLER, SHOW_FPS
+controls = require "controls"
 
 require "entity"
 require "autotile"
@@ -134,7 +134,7 @@ class Player extends Entity
   movement_vector: (dt) =>
     return Vec2d 0,0 if @locked
 
-    v = movement_vector @speed
+    v = CONTROLLER\movement_vector @speed
     if v\is_zero!
       @step_time = @step_rate
     else
@@ -184,6 +184,9 @@ class Game
 
     @effect = ViewportFade @viewport, "in"
 
+    -- start both skips the intro and pauses, swallow the press that got us here
+    CONTROLLER\downed "pause"
+
   set_world: (world) =>
     @world = world
     @player.world = @world
@@ -202,13 +205,17 @@ class Game
 
     @effect\draw! if @effect
     @viewport\pop!
-    p tostring(timer.getFPS!), 2, 2
+
+    if @pause
+      draw_overlay { "paused", "press #{controls.prompts.pause!} to resume" }
 
   update: (dt) =>
     return if dt > 1.0 -- o well
 
-    -- reloader\update dt
+    @pause = not @pause if CONTROLLER\downed "pause"
     return if @pause
+
+    @player\attack! if CONTROLLER\downed "attack"
     @viewport\update dt
     @world\update dt
 
@@ -217,12 +224,6 @@ class Game
       @effect = nil if not @effect\update(dt) and e == @effect
 
     hello\update dt
-    snapper\tick dt if snapper
-
-  on_key: (key, code) =>
-    switch key
-      when "x"
-        @player\attack!
 
 class Intro
   text: {
@@ -247,8 +248,12 @@ class Intro
     @dispatch\push Game!
 
   update: (dt) =>
-    if love.keyboard.isDown "x"
+    if CONTROLLER\is_down "attack"
       dt = dt * 6
+
+    if CONTROLLER\downed "skip"
+      @begin!
+      return
 
     if @effect
       @effect = nil if not @effect\update dt
@@ -263,10 +268,9 @@ class Intro
 
       @writer = nil if not @writer\update dt
 
+  -- escape is polled as skip above, stop the dispatcher from quitting on it
   on_key: (key, code) =>
-    if key == "escape"
-      @begin!
-      true
+    key == "escape"
 
   draw: =>
     @viewport\apply!
@@ -302,16 +306,34 @@ class Title
     @viewport\apply!
     -- the art is the 600x400 design size, center it on other screen shapes
     @bg\draw_center @viewport\center!
+    @draw_pad_prompts! if controls.has_pad!
     @effect\draw! if @effect
     @viewport\pop!
+
+  -- the art has keyboard prompts baked in, cover them when a pad is plugged in
+  draw_pad_prompts: =>
+    ox, oy = @viewport\center!
+    ox -= 300
+    oy -= 200
+    x, y, w, h = ox + 55, oy + 222, 220, 96
+    COLOR\push 30, 26, 23
+    g.rectangle "fill", x, y, w, h
+    COLOR\pop!
+
+    g.push!
+    g.translate x, y + 6
+    g.scale 2
+    g.printf "press #{controls.prompts.start!} to start", 0, 0, w / 2, "center"
+    g.printf "#{controls.prompts.move!} move", 0, 24, w / 2, "center"
+    g.printf "#{controls.prompts.attack!} attacks", 0, 36, w / 2, "center"
+    g.pop!
 
   update: (dt) =>
     if @effect
       @effect = nil if not @effect\update dt
+      return
 
-  on_key: (key, code) =>
-    return if @effect
-    if key == "return"
+    if CONTROLLER\downed "confirm"
       sfx\play "game_start"
       @effect = ViewportFade @viewport, "out", ->
         @dispatch\push Intro!
@@ -376,9 +398,41 @@ love.load = (args) ->
 
   g.setFont fonts.main
 
-  -- game = Game!
+  CONTROLLER = controls.make_controller!
+  love.joystickadded = -> CONTROLLER = controls.make_controller!
+  love.joystickremoved = -> CONTROLLER = controls.make_controller!
+
   dispatch = Dispatcher Title!
   dispatch\bind love
+
+  menu_actions = {
+    {"menu_quit", "a: quit", -> love.event.push "quit"}
+    {"menu_fps", "x: toggle fps", -> SHOW_FPS = not SHOW_FPS}
+  }
+
+  -- the menu pauses everything underneath while select is held
+  dispatch_update = love.update
+  love.update = (dt) ->
+    if controls.menu_open!
+      for {name, _, fn} in *menu_actions
+        fn! if CONTROLLER\downed name
+      return
+
+    dispatch_update dt
+
+  dispatch_draw = love.draw
+  love.draw = ->
+    dispatch_draw!
+
+    if SHOW_FPS
+      g.push!
+      g.origin!
+      g.scale GAME_CONFIG.scale
+      p tostring(timer.getFPS!), 2, 2
+      g.pop!
+
+    if controls.menu_open!
+      draw_overlay [label for {_, label} in *menu_actions]
 
   love.mousepressed = (x,y, button) ->
     -- x, y = game.viewport\unproject x, y

@@ -4,6 +4,31 @@ export GAME_CONFIG = {
   viewport_width: 200
   viewport_height: 400 / 3
   scale: 3
+
+  keys: {
+    up: "up"
+    down: "down"
+    left: "left"
+    right: "right"
+
+    attack: "x"
+    confirm: { "return", "x" }
+    skip: "escape"
+    pause: "p"
+  }
+
+  -- gamepad button names, either row of the diamond attacks
+  gamepad: {
+    attack: { "a", "x" }
+    confirm: { "a", "x", "start" }
+    skip: "start"
+    pause: "start"
+
+    -- holding select opens the menu, the face buttons pick an action
+    menu: "back"
+    menu_quit: "a"
+    menu_fps: "x"
+  }
 }
 
 love.conf = (t) ->

@@ -33,3 +33,33 @@ class HorizBar
 
     g.pop!
     g.setColor 1,1,1,1
+
+-- dim the screen and print lines centered in a box, in screen space at the
+-- pixel scale so it sits on top of any scene
+export draw_overlay
+draw_overlay = (lines) ->
+  scale = GAME_CONFIG.scale
+  g.push!
+  g.origin!
+  g.scale scale
+  w, h = g.getWidth! / scale, g.getHeight! / scale
+  COLOR\push 0, 0, 0, 180
+  g.rectangle "fill", 0, 0, w, h
+  COLOR\pop!
+
+  line_h = 12
+  font = g.getFont!
+  lines = [line\lower! for line in *lines]
+  box_w = math.max unpack [font\getWidth line for line in *lines]
+  box_h = #lines * line_h
+  y = math.floor h / 2 - box_h / 2
+
+  COLOR\push 0, 0, 0
+  g.rectangle "fill", math.floor(w / 2 - box_w / 2) - 6, y - 6, box_w + 12, box_h + 12
+  COLOR\pop!
+
+  for line in *lines
+    g.printf line, 0, y, w, "center"
+    y += line_h
+
+  g.pop!
