@@ -142,6 +142,18 @@ class GreenSlime extends Enemy
       again!
 
 
+-- multiply blending ignores alpha, so transparent pixels would darken the
+-- screen. blend the tint toward white by alpha before multiplying
+multiply_shader = nil
+get_multiply_shader = ->
+  multiply_shader or= graphics.newShader [[
+    vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
+      vec4 c = Texel(tex, uv) * color;
+      return vec4(mix(vec3(1.0), c.rgb, c.a), 1.0);
+    }
+  ]]
+  multiply_shader
+
 class Bullet extends Entity
   watch_class self
   ox: -3, oy: -3
@@ -163,7 +175,9 @@ class Bullet extends Entity
   draw: =>
     blend, alpha_mode = graphics.getBlendMode!
     graphics.setBlendMode "multiply", "premultiplied"
+    graphics.setShader get_multiply_shader!
     @anim\draw @box.x + @ox, @box.y + @oy
+    graphics.setShader!
     graphics.setBlendMode blend, alpha_mode
 
   hurt_player: (player) =>
