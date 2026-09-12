@@ -166,8 +166,10 @@ class Game
   on_show: (@dispatch) => sfx\play_music "slime"
 
   new: =>
-    @viewport = EffectViewport scale: 3
-    -- g.setLineWidth 1/@viewport.screen.scale
+    @viewport = EffectViewport {
+      pixel_scale: true
+      scale: GAME_CONFIG.scale
+    }
 
     -- cheat to last level
     level = if love.keyboard.isDown"1" and love.keyboard.isDown"2"
@@ -234,7 +236,10 @@ class Intro
 
   new: =>
     @i = 1
-    @viewport = EffectViewport scale: 3
+    @viewport = EffectViewport {
+      pixel_scale: true
+      scale: GAME_CONFIG.scale
+    }
     @effect = ViewportFade @viewport, "in"
 
   begin: =>
@@ -287,12 +292,18 @@ class Title
   on_show: (@dispatch) => sfx\play_music "slime_title"
   new: =>
     @bg = imgfy "img/title.png"
-    @viewport = EffectViewport scale: 1
+    @viewport = EffectViewport {
+      pixel_scale: true
+      scale: 1
+    }
     @effect = ViewportFade @viewport, "in"
 
   draw: =>
-    @bg\draw 0,0
+    @viewport\apply!
+    -- the art is the 600x400 design size, center it on other screen shapes
+    @bg\draw_center @viewport\center!
     @effect\draw! if @effect
+    @viewport\pop!
 
   update: (dt) =>
     if @effect
@@ -306,12 +317,44 @@ class Title
         @dispatch\push Intro!
 
 
+TITLE = "ExoSlime"
+
+-- windowed at the design size, fullscreen on displays too small for it
+-- (the RG35XXH is 640x480)
+-- `love . --window 640x480` or EXOSLIME_WINDOW=640x480 forces a windowed size
+open_window = (args={}) ->
+  size = os.getenv "EXOSLIME_WINDOW"
+  for i, arg in ipairs args
+    size = args[i + 1] if arg == "--window"
+
+  design_w = GAME_CONFIG.viewport_width * GAME_CONFIG.scale
+  design_h = GAME_CONFIG.viewport_height * GAME_CONFIG.scale
+
+  if size
+    w, h = size\match "^(%d+)x(%d+)$"
+    error "bad --window size, expected WxH: #{size}" unless w
+    love.window.setMode tonumber(w), tonumber(h)
+  else
+    dw, dh = love.window.getDesktopDimensions!
+    if dw < design_w or dh < design_h
+      love.window.setMode 0, 0, fullscreen: true, fullscreentype: "desktop"
+      love.mouse.setVisible false
+    else
+      love.window.setMode design_w, design_h
+
+  love.window.setTitle TITLE
+
+  -- integer pixel scale closest to the design width: 3 at 600 and 640 wide
+  GAME_CONFIG.scale = math.max 1, math.floor g.getWidth! / GAME_CONFIG.viewport_width + 0.5
+
 export fonts = {}
 load_font = (img, chars)->
   with g.newImageFont img, chars
     \setFilter "nearest", "nearest"
 
-love.load = ->
+love.load = (args) ->
+  open_window args
+
   g.setBackgroundColor 61/2/255, 52/2/255, 47/2/255
 
   fonts.main = load_font "img/font.png", [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
