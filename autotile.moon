@@ -6,16 +6,17 @@ g = love.graphics
 class FakeSpriter
   new: (@cell_w, @cell_h)=>
   draw_cell: (tid, x, y) =>
-    g.setColor if tid == 1
-      0,0,0
+    if tid == 1
+      g.setColor 0,0,0
     else
-      hsl_to_rgb tid * 47, 30, 40
+      r, gg, b = hsl_to_rgb tid * 47, 30, 40
+      g.setColor r/255, gg/255, b/255
 
     g.rectangle "fill", x,y, @cell_w, @cell_h
-    g.setColor 255,255,255
+    g.setColor 1,1,1
 
 class TileSetSpriter
-  new: (@img, @cell_w, @cell_h=cell_w, ox=0, oy=0) ->
+  new: (@img, @cell_w, @cell_h=cell_w, ox=0, oy=0) =>
     @img = imgfy @img
 
     @half_w = @cell_w / 2
@@ -216,7 +217,17 @@ class Autotile
 
   new: (fname, @tilesets={}, color_to_tile) =>
     sprite = FakeSpriter 16, 16
-    @map = TileMap.from_image fname, sprite, color_to_tile
+
+    -- love 11 reads pixels as 0 to 1, the color keys are written as 0 to 255
+    -- and only opaque pixels count
+    lookup = color_to_tile
+    if type(lookup) == "table"
+      round = (v) -> math.floor v * 255 + 0.5
+      lookup = (x, y, r, g, b, a) ->
+        return nil unless a > 0.99
+        color_to_tile[table.concat {round(r), round(g), round(b)}, ","]
+
+    @map = TileMap\from_image fname, sprite, lookup
 
     @add_walls!
     @add_surrounding!
@@ -226,8 +237,20 @@ class Autotile
 
     @lift_border!
 
-  draw_below: (...) => @map\draw_layer 1, ...
-  draw_above: (...) => @map\draw_layer 2, ...
+  -- lovekit's TileMap now draws with a sprite batch from one image, these
+  -- tiles draw themselves from their own tilesets
+  draw_layer: (l, viewport) =>
+    tiles = @map.layers[l]
+    if viewport
+      for tid in @map\tiles_for_box viewport
+        tile = tiles[tid]
+        tile\draw @map.sprite, @map if tile
+    else
+      for _, tile in pairs tiles
+        tile\draw @map.sprite, @map
+
+  draw_below: (...) => @draw_layer 1, ...
+  draw_above: (...) => @draw_layer 2, ...
 
   collides: (thing) =>
     @map\collides thing

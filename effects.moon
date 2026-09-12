@@ -14,9 +14,9 @@ class ViewportFade extends Sequence
 
   new: (@viewport, kind="in", callback) =>
     start, stop = if kind == "in"
-      255,0
+      1, 0
     else
-      0, 255
+      0, 1
 
     @alpha = start
     super ->
@@ -46,7 +46,7 @@ class ColorEffect extends Sequence
     graphics.setColor @tmp_color
 
 class Flash extends ColorEffect
-  new: (duration=0.2, color={255,100,100}) =>
+  new: (duration=0.2, color={1, 0.4, 0.4}) =>
     half = duration/2
     super ->
       start = {graphics.getColor!}
@@ -55,8 +55,8 @@ class Flash extends ColorEffect
       tween @color, half, start
 
 class Fade extends ColorEffect
-  new: (duration=0.5) ->
-    @alpha = 255
+  new: (duration=0.5) =>
+    @alpha = 1
     super ->
       tween self, duration, alpha: 0
 
@@ -113,7 +113,7 @@ class PixelParticle extends Particle
     half = @size/2
     with graphics
       r,g,b,a = .getColor!
-      .setColor @r, @g, @b, @a * 255
+      .setColor @r/255, @g/255, @b/255, @a
       .rectangle "fill", @x - half, @y - half, @size, @size
       .setColor r,g,b,a
 
@@ -156,7 +156,7 @@ class NumberParticle extends Particle
       .setFont fonts.damage
       r,g,b,a = .getColor!
 
-      .setColor @r, @g, @b, @a * 255
+      .setColor @r/255, @g/255, @b/255, @a
 
       .push!
       .translate @x, @y

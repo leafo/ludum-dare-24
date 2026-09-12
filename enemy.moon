@@ -161,10 +161,10 @@ class Bullet extends Entity
     not @hit and not colx and not coly
 
   draw: =>
-    blend = graphics.getBlendMode!
-    graphics.setBlendMode "multiplicative"
+    blend, alpha_mode = graphics.getBlendMode!
+    graphics.setBlendMode "multiply", "premultiplied"
     @anim\draw @box.x + @ox, @box.y + @oy
-    graphics.setBlendMode blend
+    graphics.setBlendMode blend, alpha_mode
 
   hurt_player: (player) =>
     @hit = true
@@ -189,7 +189,7 @@ class BounceBullet extends Bullet
     -- fade out
     if @time < 0.3
       r,g,b,a = graphics.getColor!
-      graphics.setColor r,g,b, 255 * @time / 0.3
+      graphics.setColor r,g,b, @time / 0.3
       super!
       graphics.setColor r,g,b,a
     else

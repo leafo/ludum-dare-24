@@ -1,6 +1,6 @@
-
 love.conf = (t) ->
-  t.screen.width = 600
-  t.screen.height = 400
-  t.title = "Leafo2000"
-  t.author = "leafo"
+  t.version = "11.5"
+  t.identity = "exoslime"
+  t.title = "ExoSlime"
+  t.window.width = 600
+  t.window.height = 400

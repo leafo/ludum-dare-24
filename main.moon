@@ -13,6 +13,7 @@ import concat from table
 require "lovekit.screen_snap"
 -- snapper = ScreenSnap!
 
+require "entity"
 require "autotile"
 require "attack"
 require "enemy"
@@ -162,7 +163,7 @@ class Player extends Entity
 hello = Printer "hello\nworld!\n\nahehfehf\n\nAHHHHHFeefh\n\n...\nhelp me"
 
 class Game
-  onload: (@dispatch) => sfx\play_music "slime"
+  on_show: (@dispatch) => sfx\play_music "slime"
 
   new: =>
     @viewport = EffectViewport scale: 3
@@ -229,7 +230,7 @@ class Intro
     "you must get them!    "
   }
 
-  onload: (@dispatch) => sfx.music\stop!
+  on_show: (@dispatch) => sfx.music\stop!
 
   new: =>
     @i = 1
@@ -283,7 +284,7 @@ export class Outro extends Intro
     @dispatch\pop 2
 
 class Title
-  onload: (@dispatch) => sfx\play_music "slime_title"
+  on_show: (@dispatch) => sfx\play_music "slime_title"
   new: =>
     @bg = imgfy "img/title.png"
     @viewport = EffectViewport scale: 1
@@ -307,17 +308,16 @@ class Title
 
 export fonts = {}
 load_font = (img, chars)->
-  font_image = imgfy img
-  g.newImageFont font_image.tex, chars
+  with g.newImageFont img, chars
+    \setFilter "nearest", "nearest"
 
 love.load = ->
-  -- g.setBackgroundColor 61, 52, 47
-  g.setBackgroundColor 61/2, 52/2, 47/2
+  g.setBackgroundColor 61/2/255, 52/2/255, 47/2/255
 
   fonts.main = load_font "img/font.png", [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
   fonts.damage = load_font "img/font2.png", [[ 1234567890]]
 
-  export sfx = lovekit.audio.Audio!
+  export sfx = Audio!
   sfx\preload {
     "game_start"
     "step"
