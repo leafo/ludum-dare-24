@@ -21,7 +21,11 @@ class Entity
   update: (dt) =>
     @fit_move unpack @velocity * dt
 
-  on_stuck: => print "on_stuck: " .. @@__name
+  -- printing every frame is slow on the handheld, say it once
+  on_stuck: =>
+    return if @stuck_reported
+    @stuck_reported = true
+    print "on_stuck: " .. @@__name
 
   direction_name: (default_dir="down", v=@velocity) =>
     base = if v\is_zero! then
