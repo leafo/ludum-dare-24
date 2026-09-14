@@ -242,16 +242,22 @@ class Intro
       scale: GAME_CONFIG.scale
     }
     @effect = ViewportFade @viewport, "in"
+    @time = 0
 
   begin: =>
     @dispatch\pop!
     @dispatch\push Game!
 
   update: (dt) =>
+    -- real time, before the attack speed up. a skip press is only honored
+    -- after a second so the press that got us here can't blow past the intro
+    @time += dt
+    skip = CONTROLLER\downed "skip"
+
     if CONTROLLER\is_down "attack"
       dt = dt * 6
 
-    if CONTROLLER\downed "skip"
+    if skip and @time >= 1
       @begin!
       return
 
