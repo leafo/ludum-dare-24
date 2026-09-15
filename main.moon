@@ -12,6 +12,7 @@ import concat from table
 
 export CONTROLLER, SHOW_FPS
 controls = require "controls"
+import open_window from require "lovekit.window"
 
 require "entity"
 require "autotile"
@@ -299,28 +300,38 @@ export class Outro extends Intro
     @dispatch\pop 2
 
 class Title
+  -- the art is one fixed picture, not game pixels, so it gets its own scale
+  art_w: 600
+  art_h: 400
+
   on_show: (@dispatch) => sfx\play_music "slime_title"
   new: =>
     @bg = imgfy "img/title.png"
     @viewport = EffectViewport {
       pixel_scale: true
-      scale: 1
+      -- 1x at 640x480, 2x at 1024x768
+      scale: pixel_scale_for @art_w, @art_h, crop: true
     }
     @effect = ViewportFade @viewport, "in"
 
+  -- centered, but anchored left once the art is wider than the screen so the
+  -- crop takes the slime's edge instead of the logo
+  art_origin: =>
+    x = math.floor (@viewport.w - @art_w) / 2
+    y = math.floor (@viewport.h - @art_h) / 2
+    x = 0 if x < 0
+    x, y
+
   draw: =>
     @viewport\apply!
-    -- the art is the 600x400 design size, center it on other screen shapes
-    @bg\draw_center @viewport\center!
+    @bg\draw @art_origin!
     @draw_pad_prompts! if controls.has_pad!
     @effect\draw! if @effect
     @viewport\pop!
 
   -- the art has keyboard prompts baked in, cover them when a pad is plugged in
   draw_pad_prompts: =>
-    ox, oy = @viewport\center!
-    ox -= 300
-    oy -= 200
+    ox, oy = @art_origin!
     x, y, w, h = ox + 55, oy + 222, 220, 96
     COLOR\push 30, 26, 23
     g.rectangle "fill", x, y, w, h
@@ -347,41 +358,22 @@ class Title
 
 TITLE = "ExoSlime"
 
--- windowed at the design size, fullscreen on displays too small for it
--- (the RG35XXH is 640x480)
--- `love . --window 640x480` or EXOSLIME_WINDOW=640x480 forces a windowed size
-open_window = (args={}) ->
-  size = os.getenv "EXOSLIME_WINDOW"
-  for i, arg in ipairs args
-    size = args[i + 1] if arg == "--window"
-
-  design_w = GAME_CONFIG.viewport_width * GAME_CONFIG.scale
-  design_h = GAME_CONFIG.viewport_height * GAME_CONFIG.scale
-
-  if size
-    w, h = size\match "^(%d+)x(%d+)$"
-    error "bad --window size, expected WxH: #{size}" unless w
-    love.window.setMode tonumber(w), tonumber(h)
-  else
-    dw, dh = love.window.getDesktopDimensions!
-    if dw < design_w or dh < design_h
-      love.window.setMode 0, 0, fullscreen: true, fullscreentype: "desktop"
-      love.mouse.setVisible false
-    else
-      love.window.setMode design_w, design_h
-
-  love.window.setTitle TITLE
-
-  -- integer pixel scale closest to the design width: 3 at 600 and 640 wide
-  GAME_CONFIG.scale = math.max 1, math.floor g.getWidth! / GAME_CONFIG.viewport_width + 0.5
-
 export fonts = {}
 load_font = (img, chars)->
   with g.newImageFont img, chars
     \setFilter "nearest", "nearest"
 
 love.load = (args) ->
-  open_window args
+  open_window {
+    title: TITLE
+    env: "EXOSLIME_WINDOW"
+    :args
+    design_w: GAME_CONFIG.viewport_width * GAME_CONFIG.scale
+    design_h: GAME_CONFIG.viewport_height * GAME_CONFIG.scale
+  }
+
+  -- integer pixel scale closest to the design size: 3 at 600 and 640 wide, 5 at 1024x768
+  GAME_CONFIG.scale = pixel_scale_for GAME_CONFIG.viewport_width, GAME_CONFIG.viewport_height, crop: true
 
   g.setBackgroundColor 61/2/255, 52/2/255, 47/2/255
 
