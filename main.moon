@@ -300,48 +300,80 @@ export class Outro extends Intro
     @dispatch\pop 2
 
 class Title
-  -- the art is one fixed picture, not game pixels, so it gets its own scale
+  -- the art is not game pixels, so it gets its own scale. pieces are always
+  -- drawn 1:1 in art space, the viewport only decides how much of it fits
   art_w: 600
   art_h: 400
 
+  -- art space coordinates, the slime and the credit measure in from the
+  -- bottom right corner instead of the top left
+  logo_at: { 12, 20 }
+  slime_margin: { 0, 6 }
+  credit_margin: { 11, 9 }
+  prompts_box: { 58, 219, 216, 116 }
+
+  -- on a viewport narrower than the art the slime would slide left into the
+  -- prompts, it runs off the right edge instead once it reaches where it sat
+  slime_min_x: 222
+
   on_show: (@dispatch) => sfx\play_music "slime_title"
   new: =>
-    @bg = imgfy "img/title.png"
+    @bg = imgfy "img/title_bg.png"
+    @logo = imgfy "img/title_logo.png"
+    @slime = imgfy "img/title_slime.png"
+    @credit = imgfy "img/title_credit.png"
+
     @viewport = EffectViewport {
       pixel_scale: true
       -- 1x at 640x480, 2x at 1024x768
       scale: pixel_scale_for @art_w, @art_h, crop: true
     }
+
+    -- the viewport is rarely the size of the art, so the bg is read through a
+    -- viewport sized quad, centered and sitting on the floor. clamped wrapping
+    -- repeats the edge pixels wherever the quad reaches past the art
+    @bg\set_wrap "clamp", "clamp"
+    @bg_quad = g.newQuad(
+      math.floor (@art_w - @viewport.w) / 2
+      @art_h - @viewport.h
+      @viewport.w
+      @viewport.h
+      @art_w
+      @art_h
+    )
+
     @effect = ViewportFade @viewport, "in"
 
-  -- centered, but anchored left once the art is wider than the screen so the
-  -- crop takes the slime's edge instead of the logo
-  art_origin: =>
-    x = math.floor (@viewport.w - @art_w) / 2
-    y = math.floor (@viewport.h - @art_h) / 2
-    x = 0 if x < 0
-    x, y
+  from_bottom_right: (img, margin) =>
+    mx, my = unpack margin
+    @viewport.w - img\width! - mx, @viewport.h - img\height! - my
 
   draw: =>
     @viewport\apply!
-    @bg\draw @art_origin!
-    @draw_pad_prompts! if controls.has_pad!
+
+    g.draw @bg.tex, @bg_quad, 0, 0
+    sx, sy = @from_bottom_right @slime, @slime_margin
+    @slime\draw (math.max sx, @slime_min_x), sy
+    @logo\draw unpack @logo_at
+    @credit\draw @from_bottom_right @credit, @credit_margin
+    @draw_prompts!
+
     @effect\draw! if @effect
     @viewport\pop!
 
-  -- the art has keyboard prompts baked in, cover them when a pad is plugged in
-  draw_pad_prompts: =>
-    ox, oy = @art_origin!
-    x, y, w, h = ox + 55, oy + 222, 220, 96
-    COLOR\push 30, 26, 23
+  -- drawn here rather than painted into the art so the button names follow
+  -- whatever is plugged in
+  draw_prompts: =>
+    x, y, w, h = unpack @prompts_box
+    COLOR\push 48, 48, 48, 114
     g.rectangle "fill", x, y, w, h
     COLOR\pop!
 
     g.push!
-    g.translate x, y + 6
+    g.translate x, y
     g.scale 2
-    g.printf "press #{controls.prompts.start!} to start", 0, 0, w / 2, "center"
-    g.printf "#{controls.prompts.move!} move", 0, 24, w / 2, "center"
+    g.printf "press #{controls.prompts.start!} to start", 0, 6, w / 2, "center"
+    g.printf "#{controls.prompts.move!} move", 0, 26, w / 2, "center"
     g.printf "#{controls.prompts.attack!} attacks", 0, 36, w / 2, "center"
     g.pop!
 

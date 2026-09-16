@@ -23,7 +23,7 @@ lint:
 
 $(LOVE_FILE): build
 	rm -f $(LOVE_FILE)
-	zip -9 -r $(LOVE_FILE) *.lua img audio levels/*.lua lovekit/*.lua -x '*.xrns' '*.xcf'
+	zip -9 -r $(LOVE_FILE) *.lua img audio levels/*.lua lovekit/*.lua -x '*.xrns' '*.xcf' 'img/title.png'
 
 deploy: $(LOVE_FILE)
 	butler push $(LOVE_FILE) $(ITCH_TARGET) --userversion $(USER_VERSION)
